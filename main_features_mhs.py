@@ -9,14 +9,12 @@ conn = mysql.connector.connect(
     database="ebookingclass"
 )
 
-
 def ajukan_kelas(nim, email):
     cursor = conn.cursor()
     
     # Tampilkan kelas yang tersedia (status 'Tersedia')
     print("\n--- Kelas Tersedia ---")
     try:
-        # Query untuk menampilkan kelas yang berstatus 'Tersedia' saja
         query = '''
         SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, 
                dosen.nama, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
@@ -33,7 +31,6 @@ def ajukan_kelas(nim, email):
             print("Tidak ada kelas yang tersedia saat ini.")
             return
 
-        # Menampilkan daftar kelas yang tersedia
         for row in results:
             print("-" * 40)
             print(f"ID Detail Kelas      : {row[0]}")
@@ -50,7 +47,6 @@ def ajukan_kelas(nim, email):
         # Input ID Detail Kelas yang ingin diajukan
         id_detail_kelas = input("\nMasukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
 
-        # Ambil data kelas yang dipilih untuk mengecek jam mulai dan selesai
         cursor.execute('''
         SELECT jam_mulai, jam_selesai FROM detail_kelas WHERE id_detail_kelas = %s
         ''', (id_detail_kelas,))
@@ -63,19 +59,16 @@ def ajukan_kelas(nim, email):
         jam_mulai_baru = kelas_terpilih[0]
         jam_selesai_baru = kelas_terpilih[1]
 
-        # Cek ketersediaan waktu kelas yang dipilih
         if not cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
-            return  # Jika waktu sudah digunakan, tidak lanjutkan pengajuan
+            return
 
-        # Proses konfirmasi pengajuan kelas
         valid_input = False
         while not valid_input:
             confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
             
             if confirmation.lower() == 'y':
                 try:
-                    # Insert data transaksi untuk pemesanan kelas
-                    cursor.execute('''
+                    cursor.execute(''' 
                     INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi)
                     VALUES (%s, %s, %s, NOW(), 'Pending')
                     ''', (nim, id_detail_kelas, email))
@@ -99,7 +92,6 @@ def ajukan_kelas(nim, email):
 def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
     cursor = conn.cursor()
     try:
-        # Query untuk mencari kelas yang memiliki waktu tumpang tindih
         query = '''
         SELECT * FROM detail_kelas 
         WHERE status = 'Tersedia' 
@@ -109,7 +101,6 @@ def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
         cursor.execute(query, (jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru))
         results = cursor.fetchall()
 
-        # Jika ada kelas yang memiliki waktu tumpang tindih
         if results:
             print("Tidak dapat mengajukan kelas, karena waktu tersebut sudah digunakan.")
             return False
@@ -120,6 +111,68 @@ def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
     finally:
         cursor.close()
 
+def batal_kelas(nim):
+    cursor = conn.cursor()
+    
+    try:
+        # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
+        print("\n--- Pesanan Kelas Anda ---")
+        cursor.execute('''
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, 
+                   detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.status_transaksi
+            FROM transaksi
+            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+            WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pending'
+        ''', (nim,))
+        result = cursor.fetchall()
+
+        if not result:
+            print("Tidak ada kelas yang dapat dibatalkan atau sudah dikonfirmasi.")
+            return
+
+        # Menampilkan daftar pesanan kelas yang dapat dibatalkan
+        print("-" * 40)
+        for row in result:
+            print(f"ID Pesanan           : {row[0]}")
+            print(f"ID Detail Kelas      : {row[1]}")
+            print(f"Kode Kelas           : {row[2]}")
+            print(f"Waktu Penggunaan     : {row[3]} - {row[4]}")
+            print(f"Status Pesanan       : {row[5]}")
+            print("-" * 40)
+
+        # Input ID Pesanan yang ingin dibatalkan
+        id_transaksi = input("Masukkan ID Pesanan yang ingin dibatalkan: ").strip()
+
+        # Verifikasi ID Transaksi yang dipilih
+        cursor.execute('''
+            SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s
+        ''', (id_transaksi, nim))
+        transaksi_terpilih = cursor.fetchone()
+
+        if transaksi_terpilih is None:
+            print("ID Transaksi tidak ditemukan.")
+            return
+
+        # Proses konfirmasi pembatalan
+        confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N): ")
+        if confirmation.lower() == 'y':
+            # Update status transaksi menjadi 'Cancelled'
+            cursor.execute('''
+                UPDATE transaksi
+                SET status_transaksi = 'Cancelled'
+                WHERE id_transaksi = %s
+            ''', (id_transaksi,))
+            conn.commit()
+            print("Pesanan kelas berhasil dibatalkan.")
+        elif confirmation.lower() == 'n':
+            print("Pembatalan dibatalkan.")
+        else:
+            print("Input tidak valid.")
+
+    except mysql.connector.Error as err:
+        print(f"Error: Terjadi kesalahan saat membatalkan pesanan kelas. {err}")
+    finally:
+        cursor.close()
 
 def lihat_pesanan_saya(NIM):
     cursor = conn.cursor()
@@ -140,6 +193,6 @@ def lihat_pesanan_saya(NIM):
                 print(f"Tanggal Transaksi    : {i[4]}")
                 print(f"Status Transaksi     : {i[5]}")
                 print("=============================================")
-                
+
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

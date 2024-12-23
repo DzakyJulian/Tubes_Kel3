@@ -9,31 +9,117 @@ conn = mysql.connector.connect(
     database="ebookingclass"
 )
 
+
 def ajukan_kelas(nim, email):
     cursor = conn.cursor()
-    id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
+    
+    # Tampilkan kelas yang tersedia (status 'Tersedia')
+    print("\n--- Kelas Tersedia ---")
     try:
+        # Query untuk menampilkan kelas yang berstatus 'Tersedia' saja
+        query = '''
+        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, 
+               dosen.nama, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
+               detail_kelas.status, detail_kelas.pengguna 
+        FROM detail_kelas 
+        INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
+        WHERE detail_kelas.status = 'Tersedia'
+        ORDER BY kode_kelas ASC
+        '''
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        if not results:
+            print("Tidak ada kelas yang tersedia saat ini.")
+            return
+
+        # Menampilkan daftar kelas yang tersedia
+        for row in results:
+            print("-" * 40)
+            print(f"ID Detail Kelas      : {row[0]}")
+            print(f"Kode Kelas           : {row[1]}")
+            print(f"Kode Mata Kuliah     : {row[2]}")
+            print(f"NIP Dosen            : {row[3]}")
+            print(f"Dosen yang mengajar  : {row[4]}")
+            print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
+            print(f"Informasi Kelas      : {row[7]}")
+            print(f"Pengguna             : {row[8]}")
+            print(f"Status               : {row[9]}")
+            print("-" * 40)
+
+        # Input ID Detail Kelas yang ingin diajukan
+        id_detail_kelas = input("\nMasukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
+
+        # Ambil data kelas yang dipilih untuk mengecek jam mulai dan selesai
+        cursor.execute('''
+        SELECT jam_mulai, jam_selesai FROM detail_kelas WHERE id_detail_kelas = %s
+        ''', (id_detail_kelas,))
+        kelas_terpilih = cursor.fetchone()
+
+        if kelas_terpilih is None:
+            print("ID Detail Kelas tidak ditemukan.")
+            return
+
+        jam_mulai_baru = kelas_terpilih[0]
+        jam_selesai_baru = kelas_terpilih[1]
+
+        # Cek ketersediaan waktu kelas yang dipilih
+        if not cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
+            return  # Jika waktu sudah digunakan, tidak lanjutkan pengajuan
+
+        # Proses konfirmasi pengajuan kelas
         valid_input = False
-        while valid_input == False:
+        while not valid_input:
             confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
             
-            if (confirmation.lower() == 'y'):
-                cursor.execute('''
-                INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi)
-                VALUES (%s, %s, %s, NOW(), 'Pending')
-                ''', (nim, id_detail_kelas, email))
-                conn.commit()
-                print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
-                break
-            elif (confirmation.lower() == 'n'):
+            if confirmation.lower() == 'y':
+                try:
+                    # Insert data transaksi untuk pemesanan kelas
+                    cursor.execute('''
+                    INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi)
+                    VALUES (%s, %s, %s, NOW(), 'Pending')
+                    ''', (nim, id_detail_kelas, email))
+                    conn.commit()
+                    print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
+                    valid_input = True
+                except mysql.connector.Error as err:
+                    print(f"Error: Terjadi kesalahan, tidak dapat memesan kelas. {err}")
+            elif confirmation.lower() == 'n':
                 print("Anda tidak jadi memesan kelas ini.")
-                break
+                valid_input = True
             else:
                 print("Input tidak valid.")
+    
     except mysql.connector.Error as err:
-        print(f"Error: Terjadi kesalahan, tidak dapat memesan kelas.")
+        print(f"Error: Terjadi kesalahan saat mengambil data kelas. {err}")
+    
     finally:
         cursor.close()
+
+def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
+    cursor = conn.cursor()
+    try:
+        # Query untuk mencari kelas yang memiliki waktu tumpang tindih
+        query = '''
+        SELECT * FROM detail_kelas 
+        WHERE status = 'Tersedia' 
+        AND ((jam_mulai BETWEEN %s AND %s) OR (jam_selesai BETWEEN %s AND %s) 
+             OR (%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+        '''
+        cursor.execute(query, (jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru))
+        results = cursor.fetchall()
+
+        # Jika ada kelas yang memiliki waktu tumpang tindih
+        if results:
+            print("Tidak dapat mengajukan kelas, karena waktu tersebut sudah digunakan.")
+            return False
+        return True
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan saat memeriksa ketersediaan waktu kelas: {err}")
+        return False
+    finally:
+        cursor.close()
+
 
 def lihat_pesanan_saya(NIM):
     cursor = conn.cursor()
@@ -44,7 +130,7 @@ def lihat_pesanan_saya(NIM):
         if (len(result) == 0):
             print("Anda belum memiliki pesanan kelas.")
         else:
-            print("============== Pesanan Saya =================")
+            print("\n============== Pesanan Saya =================")
             for i in result:
                 print(f"ID Pesanan           : {i[0]}")
                 print(f"ID Detail Kelas      : {i[1]}")

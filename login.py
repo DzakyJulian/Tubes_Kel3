@@ -56,7 +56,6 @@ def login():
                 print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
                 time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
         else:
-            print(f"from login: {result}")
             nim, email, hashed_password, user_role = result
             if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                 if user_role == role:

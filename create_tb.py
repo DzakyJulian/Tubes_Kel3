@@ -83,7 +83,8 @@ def create_table():
             nim INT(20) NOT NULL,
             email VARCHAR(255) NOT NULL,
             tanggal_transaksi DATETIME NOT NULL,
-            status_transaksi ENUM('Berhasil','Gagal') NOT NULL,
+            status_transaksi ENUM('Berhasil','Gagal', 'Pending') NOT NULL,
+            komentar VARCHAR(255),
             FOREIGN KEY (nim) REFERENCES users(nim),
             FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)
         )''')

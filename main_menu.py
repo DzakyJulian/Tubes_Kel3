@@ -1,6 +1,7 @@
 import mysql.connector
+import os
 from main_features_admin import add_mata_kuliah, view_dosen, view_datakelas, input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen, tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah,edit_kelas
-from main_features_mhs import ajukan_kelas
+from main_features_mhs import ajukan_kelas, lihat_pesanan_saya
 from register import register_user
 from login import login
 from admin_db_info import get_current_mysql_password
@@ -85,9 +86,9 @@ def mahasiswa_menu():
         if choice == '1':
             tampilkan_kelas()
         elif choice == '2': 
-            ajukan_kelas(NIM=nim)
-        # elif choice == '4':
-        #     ()  # Bila ada menu profil
+            ajukan_kelas(nim=nim, email=email)
+        elif choice == '4':
+            lihat_pesanan_saya(NIM=nim)
         elif choice == '5':
             print("Logout berhasil!")
             break
@@ -96,6 +97,8 @@ def mahasiswa_menu():
 
 # Main program
 def main():
+    
+    os.system('cls')
     
     # Ambil variabel global kredensial pengguna
     global nim
@@ -112,24 +115,25 @@ def main():
 
         if choice == '1':
             result = login()
-            print(f"from main_menu: {result}")
             
-            # Ambil kredensial dari hasil percobaan login
-            user_nim = result[0]
-            user_email = result[1]
-            user_role = result[3]
+            # Masukkin ke dalem global variable kalau login nya berhasil
+            if (result != None):
+                # Ambil kredensial dari hasil percobaan login
+                user_nim = result[0]
+                user_email = result[1]
+                user_role = result[3]
+
+                # Simpan value hasil login ke dalam global variabel kredensial
+                nim = user_nim
+                email = user_email
+                role = user_role
             
-            # Simpan value hasil login ke dalam global variabel kredensial
-            nim = user_nim
-            email = user_email
-            role = user_role
-            
-            if user_role == 'admin':
-                admin_menu()  # Arahkan ke menu admin setelah login admin
-            elif user_role == 'mahasiswa':
-                mahasiswa_menu()  # Arahkan ke menu mahasiswa setelah login mahasiswa
-            else:
-                print("Role tidak ditemukan!")
+                if user_role == 'admin':
+                    admin_menu()  # Arahkan ke menu admin setelah login admin
+                elif user_role == 'mahasiswa':
+                    mahasiswa_menu()  # Arahkan ke menu mahasiswa setelah login mahasiswa
+                else:
+                    print("Role tidak ditemukan!")
         elif choice == '2':
             register_user()
         elif choice == '3':

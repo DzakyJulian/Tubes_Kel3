@@ -126,7 +126,7 @@ def lihat_pesanan_saya(NIM):
     try:
         cursor.execute(f"SELECT * FROM transaksi INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = \"{NIM}\" ")
         result = cursor.fetchall()
-        
+
         if (len(result) == 0):
             print("Anda belum memiliki pesanan kelas.")
         else:

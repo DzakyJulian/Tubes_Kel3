@@ -25,6 +25,7 @@ def admin_menu():
     while True:
         print("\n=== Menu Admin ===")
         print("1. Lihat Pengajuan Kelas")
+        print("2. Lihat Pengajuan Pembatalan Kelas")
         print("2. Tambah Mata Kuliah")
         print("3. Lihat Data Mata Kuliah")
         print("4. Tambah Data Dosen")
@@ -87,7 +88,7 @@ def mahasiswa_menu():
 
         if choice == '1':
             tampilkan_kelas()
-        elif choice == '2': 
+        elif choice == '2':
             ajukan_kelas(nim=nim, email=email)
         elif choice == '4':
             lihat_pesanan_saya(NIM=nim)

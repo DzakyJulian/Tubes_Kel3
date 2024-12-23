@@ -16,7 +16,7 @@ def valid_email(email):
 
 def register_user():
     print("\n=== Register Mahasiswa ===")
-    nim = input("Masukkan NIM: ").strip().lower()
+    nim = input("Masukkan NIM: ").strip()
     email = input("Masukkan Email: ").strip().lower()
     password = input("Masukkan Password: ").strip()
     password_hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())

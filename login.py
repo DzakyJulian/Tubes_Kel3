@@ -37,7 +37,7 @@ def login():
         print(f"Anda memilih untuk login sebagai {role.capitalize()}.")
 
         # Masukkan NIM dan password sesuai dengan role yang dipilih
-        nim = input("Masukkan NIM: ").lower()
+        nim = input("Masukkan NIM: ")
         password = input("Masukkan Password: ").strip()
         
         # Normalisasi password

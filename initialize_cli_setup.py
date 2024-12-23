@@ -36,6 +36,7 @@ if (opsi_migrate_db_dan_table.lower() == "y"):
     create_table()
     print('|')
     print('Database dan tabel berhasil dibuat.')
+    print("Initialize CLI setup telah selesai.")
     
 elif (opsi_migrate_db_dan_table.lower() == "n"):
     print("Database dan tabel tidak akan dibuat.")

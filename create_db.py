@@ -2,7 +2,7 @@ import mysql.connector
 from admin_db_info import get_current_mysql_password
 
 def create_database():
-    # Koneksi ke MySQL tanpa database
+    # Koneksi ke MySQL
     conn = mysql.connector.connect(
         host="localhost",
         user="root",   # Username default XAMPP

@@ -27,7 +27,8 @@ with open("admin_db_info.txt", mode="w") as file:
     file.writelines(content)
 print("Password MySQL berhasil diubah.")
 
-# 
+# opsi apakah user ingin membuat database dan tabel secara otomatis
+# ini akan menjalankan fungsi create_database dan create_table
 opsi_migrate_db_dan_table = input("Apakah anda ingin membuat database bernama 'ebookingclass' beserta tabel nya? (Y/N)\n> ")
 if (opsi_migrate_db_dan_table.lower() == "y"):
     create_database()

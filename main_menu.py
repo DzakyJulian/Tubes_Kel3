@@ -14,6 +14,11 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
+# global variable untuk kredensial user
+nim = ""
+email = ""
+role = ""
+
 # Menu untuk admin
 def admin_menu():
     while True:
@@ -72,17 +77,18 @@ def mahasiswa_menu():
         print("1. Lihat Kelas")
         print("2. Ajukan Kelas")
         print("3. Lihat Profil (maintenance)")
-        print("4. Logout")
+        print("4. Lihat Pesanan Saya")
+        print("5. Logout")
         
         choice = input("Pilih menu: ").strip()
 
         if choice == '1':
             tampilkan_kelas()
-        elif choice == '2':
-            ajukan_kelas()
-        # elif choice == '3':
-        #     profile_menu()  # Bila ada menu profil
-        elif choice == '4':
+        elif choice == '2': 
+            ajukan_kelas(NIM=nim)
+        # elif choice == '4':
+        #     ()  # Bila ada menu profil
+        elif choice == '5':
             print("Logout berhasil!")
             break
         else:
@@ -90,6 +96,12 @@ def mahasiswa_menu():
 
 # Main program
 def main():
+    
+    # Ambil variabel global kredensial pengguna
+    global nim
+    global email
+    global role
+
     while True:
         print("\n=== Sistem E-Booking Class ===")
         print("1. Login")
@@ -99,7 +111,19 @@ def main():
         choice = input("Pilih menu: ").strip()
 
         if choice == '1':
-            user_role = login()
+            result = login()
+            print(f"from main_menu: {result}")
+            
+            # Ambil kredensial dari hasil percobaan login
+            user_nim = result[0]
+            user_email = result[1]
+            user_role = result[3]
+            
+            # Simpan value hasil login ke dalam global variabel kredensial
+            nim = user_nim
+            email = user_email
+            role = user_role
+            
             if user_role == 'admin':
                 admin_menu()  # Arahkan ke menu admin setelah login admin
             elif user_role == 'mahasiswa':
@@ -109,7 +133,7 @@ def main():
         elif choice == '2':
             register_user()
         elif choice == '3':
-            print("Terima kasih telah menggunakan sistem ini.")
+            print("Terima kasih telah menggunakan program ini.")
             break
         else:
             print("Pilihan tidak valid!")

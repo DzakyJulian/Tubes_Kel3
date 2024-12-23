@@ -44,7 +44,7 @@ def login():
         password = unicodedata.normalize("NFKC", password).strip()
 
         # Check NIM di database
-        cursor.execute(f"SELECT password, user_role FROM users WHERE nim = \"{nim}\"")
+        cursor.execute(f"SELECT nim, email, password, user_role FROM users WHERE nim = \"{nim}\"")
         result = cursor.fetchone()
 
         if result is None:
@@ -56,13 +56,14 @@ def login():
                 print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
                 time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
         else:
-            hashed_password, user_role = result
+            print(f"from login: {result}")
+            nim, email, hashed_password, user_role = result
             if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                 if user_role == role:
                     print(f"Login berhasil sebagai {role.capitalize()}.")
                     cursor.close()
                     conn.close()
-                    return role  # Kembalikan role yang berhasil login
+                    return result  # Kembalikan kredensial yang berhasil login
                 else:
                     print(f"Login gagal! Anda terdaftar sebagai {user_role}, bukan sebagai {role}.")
             else:

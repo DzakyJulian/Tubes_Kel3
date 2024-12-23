@@ -416,7 +416,7 @@ def tampilkan_kelas():
     try:
         cursor = conn.cursor()
         query = '''
-        SELECT detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, dosen.nama, detail_kelas.jam_mulai, 
+        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, dosen.nama, detail_kelas.jam_mulai, 
         detail_kelas.jam_selesai, detail_kelas.informasi_kelas, detail_kelas.status, detail_kelas.pengguna FROM detail_kelas INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
         ORDER BY kode_kelas ASC
         '''
@@ -427,14 +427,15 @@ def tampilkan_kelas():
             for row in results:
                 
                 print("-" * 40)
-                print(f"Kode Kelas           : {row[0]}")
-                print(f"Kode Mata Kuliah     : {row[1]}")
-                print(f"NIP Dosen            : {row[2]}")
-                print(f"Dosen yang mengajar  : {row[3]}")
-                print(f"Waktu Penggunaan     : {row[4]} - {row[5]}")
+                print(f"ID Detail Kelas      : {row[0]}")
+                print(f"Kode Kelas           : {row[1]}")
+                print(f"Kode Mata Kuliah     : {row[2]}")
+                print(f"NIP Dosen            : {row[3]}")
+                print(f"Dosen yang mengajar  : {row[4]}")
+                print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
                 print(f"Informasi Kelas      : {row[6]}")
-                print(f"Pengguna             : {row[8]}")
-                print(f"Status               : {row[7]} oleh {row[8]}")
+                print(f"Pengguna             : {row[7]}")
+                print(f"Status               : {row[8]} oleh {row[9]}")
                 print("-" * 40)
         else:
             print("Tidak ada data di tabel detail_kelas.")

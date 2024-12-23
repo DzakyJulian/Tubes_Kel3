@@ -9,18 +9,36 @@ conn = mysql.connector.connect(
     database="ebookingclass"
 )
 
-def ajukan_kelas():
+def ajukan_kelas(NIM):
     cursor = conn.cursor()
-    kode_kelas = input("Masukkan Kode Kelas yang ingin diajukan: ").strip()
-    nim = input("Masukkan NIM Anda: ").strip()
+    id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
     try:
-        cursor.execute('''
-        INSERT INTO transaksi (nim, kode_kelas, tanggal_transaksi, status_transaksi)
-        VALUES (%s, %s, NOW(), 'Pending')
-        ''', (nim, kode_kelas))
-        conn.commit()
-        print("Pengajuan kelas berhasil ditujukan kepada akademik.")
+        valid_input = False
+        while valid_input == False:
+            confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
+            
+            if (confirmation.lower() == 'y'):
+                cursor.execute('''
+                INSERT INTO transaksi (nim, id_detail_kelas, tanggal_transaksi, status_transaksi)
+                VALUES (%s, %s, NOW(), 'Pending')
+                ''', (NIM, id_detail_kelas))
+                conn.commit()
+                print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
+                break
+            elif (confirmation.lower() == 'n'):
+                print("Anda tidak jadi memesan kelas ini.")
+                break
+            else:
+                print("Input tidak valid.")
     except mysql.connector.Error as err:
         print(f"Error: {err}")
     finally:
         cursor.close()
+
+# def lihat_pesanan_saya(NIM):
+#     cursor = conn.cursor()
+    
+#     try:
+#         cursor.execute('''
+#         SELECT * FROM 
+#         ''')

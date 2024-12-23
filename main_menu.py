@@ -1,7 +1,10 @@
 import mysql.connector
-import os
-from main_features_admin import add_mata_kuliah, view_dosen, view_datakelas, proses_pengajuan_kelas, input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen, tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah,edit_kelas
-from main_features_mhs import ajukan_kelas, lihat_pesanan_saya
+from main_features_admin import (
+    add_mata_kuliah, view_dosen, view_datakelas, proses_pengajuan_kelas,
+    input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen,
+    tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas
+)
+from main_features_mhs import ajukan_kelas, lihat_pesanan_saya, batal_kelas
 from register import register_user
 from login import login
 from admin_db_info import get_current_mysql_password
@@ -15,13 +18,8 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
-# global variable untuk kredensial user
-nim = ""
-email = ""
-role = ""
-
 # Menu untuk admin
-def admin_menu():
+def admin_menu(nim, email):
     while True:
         print("\n=== Menu Admin ===")
         print("1. Lihat Pengajuan Kelas")
@@ -69,44 +67,37 @@ def admin_menu():
             tampilkan_kelas()
         elif choice == '14':
             print("Logout berhasil! Sampai jumpa lagi.")
-            break
+            break  # Keluar dari menu admin setelah logout
         else:
             print("Pilihan tidak valid! Silakan pilih menu dari 1 sampai 14.")
 
-# Menu untuk mahasiswa
-def mahasiswa_menu():
+def mahasiswa_menu(nim, email):
     while True:
         print("\n=== Menu Mahasiswa ===")
         print("1. Lihat Kelas")
         print("2. Ajukan Kelas")
         print("3. Lihat Profil (maintenance)")
         print("4. Lihat Pesanan Saya")
-        print("5. Logout")
+        print("5. Batalkan Kelas")
+        print("6. Logout")
         
-        choice = input("Pilih menu: ").strip()
+        pilihan = input("\nMasukkan pilihan (1-6): ").strip()
 
-        if choice == '1':
+        if pilihan == '1':
             tampilkan_kelas()
-        elif choice == '2': 
-            ajukan_kelas(nim=nim, email=email)
-        elif choice == '4':
-            lihat_pesanan_saya(NIM=nim)
-        elif choice == '5':
-            print("Logout berhasil!")
-            break
+        elif pilihan == '2':
+            ajukan_kelas(nim, email)
+        elif pilihan == '4':
+            lihat_pesanan_saya(nim)
+        elif pilihan == '5':
+            batal_kelas(nim)  # Memanggil fungsi untuk membatalkan kelas
+        elif pilihan == '6':
+            print("Anda telah logout.")
+            break  # Keluar dari menu mahasiswa setelah logout
         else:
-            print("Pilihan tidak valid!")
+            print("Pilihan tidak valid. Silakan coba lagi.")
 
-# Main program
 def main():
-    
-    os.system('cls')
-    
-    # Ambil variabel global kredensial pengguna
-    global nim
-    global email
-    global role
-
     while True:
         print("\n=== Sistem E-Booking Class ===")
         print("1. Login")
@@ -116,36 +107,31 @@ def main():
         choice = input("Pilih menu: ").strip()
 
         if choice == '1':
-            result = login()
-            
-            # Masukkin ke dalem global variable kalau login nya berhasil
-            if (result != None):
-                # Ambil kredensial dari hasil percobaan login
-                user_nim = result[0]
-                user_email = result[1]
-                user_role = result[3]
+            # Pilihan login
+            result = login()  # Memanggil fungsi login
 
-                # Simpan value hasil login ke dalam global variabel kredensial
-                nim = user_nim
-                email = user_email
-                role = user_role
-            
+            if result is not None:
+                user_nim, user_email, _, user_role = result
+                # Menampilkan menu sesuai dengan peran
                 if user_role == 'admin':
-                    admin_menu()  # Arahkan ke menu admin setelah login admin
+                    admin_menu(user_nim, user_email)  # Menu admin
                 elif user_role == 'mahasiswa':
-                    mahasiswa_menu()  # Arahkan ke menu mahasiswa setelah login mahasiswa
+                    mahasiswa_menu(user_nim, user_email)  # Menu mahasiswa
                 else:
                     print("Role tidak ditemukan!")
+                    continue  # Kembali ke menu login jika role tidak ditemukan
+
         elif choice == '2':
-            register_user()
+            register_user()  # Fungsi untuk register user
         elif choice == '3':
             print("Terima kasih telah menggunakan program ini.")
-            break
+            break  # Ini akan keluar dari program
         else:
             print("Pilihan tidak valid!")
 
 # Jalankan program utama
-main()
+if __name__ == "__main__":
+    main()
 
 # Tutup koneksi
 cursor.close()

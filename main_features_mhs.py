@@ -129,8 +129,9 @@ def batal_kelas(nim):
         # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
         print("\n--- Pesanan Kelas Anda ---")
         cursor.execute('''
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, 
-                   detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.status_transaksi
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
+                    detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
+                    transaksi.pengguna, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
             WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pending'
@@ -147,8 +148,11 @@ def batal_kelas(nim):
             print(f"ID Pesanan           : {row[0]}")
             print(f"ID Detail Kelas      : {row[1]}")
             print(f"Kode Kelas           : {row[2]}")
-            print(f"Waktu Penggunaan     : {row[3]} - {row[4]}")
-            print(f"Status Pesanan       : {row[5]}")
+            print(f"Dosen                : {row[3]}")
+            print(f"Waktu Penggunaan     : {row[4]}, {row[5]} - {row[6]}")
+            print(f"Tanggal Transaksi    : {row[7]}")
+            print(f"Diajukan oleh        : {row[8]}")
+            print(f"Status Transaksi     : {row[9]}")
             print("-" * 40)
 
         # Input ID Pesanan yang ingin dibatalkan
@@ -170,7 +174,7 @@ def batal_kelas(nim):
             # Update status transaksi menjadi 'Cancelled'
             cursor.execute('''
                 UPDATE transaksi
-                SET status_transaksi = 'Cancelled'
+                SET status_transaksi = 'Dibatalkan'
                 WHERE id_transaksi = %s
             ''', (id_transaksi,))
             conn.commit()
@@ -188,7 +192,13 @@ def batal_kelas(nim):
 def lihat_pesanan_saya(NIM):
     cursor = conn.cursor()
     try:
-        cursor.execute(f"SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, transaksi.status_transaksi FROM transaksi INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = \"{NIM}\" ")
+        cursor.execute(f"""
+                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
+                       detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
+                       transaksi.pengguna, transaksi.status_transaksi 
+                FROM transaksi 
+                       INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
+                """)
         result = cursor.fetchall()
         
         if (len(result) == 0):
@@ -199,10 +209,11 @@ def lihat_pesanan_saya(NIM):
                 print(f"ID Pesanan           : {i[0]}")
                 print(f"ID Detail Kelas      : {i[1]}")
                 print(f"Kode Kelas           : {i[2]}")
-                print(f"Jam Mulai            : {i[3]}")
-                print(f"Jam Selesai          : {i[4]}")
-                print(f"Tanggal Transaksi    : {i[5]}")
-                print(f"Status Transaksi     : {i[6]}")
+                print(f"Dosen                : {i[3]}")
+                print(f"Waktu Penggunaan     : {i[4]}, {i[5]} - {i[6]}")
+                print(f"Tanggal Transaksi    : {i[7]}")
+                print(f"Diajukan untuk kelas : {i[8]}")
+                print(f"Status Transaksi     : {i[9]}")
                 print("=============================================")
 
     except mysql.connector.Error as err:

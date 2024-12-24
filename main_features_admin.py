@@ -537,7 +537,15 @@ def proses_pengajuan_kelas():
     cursor = conn.cursor()
     try:
         # Ambil semua pengajuan yang tersedia
-        cursor.execute("SELECT * FROM transaksi")
+        cursor.execute(
+            """
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
+                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+            FROM transaksi
+            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+            WHERE status_transaksi = 'Pending'
+            """)
         daftar_pengajuan = cursor.fetchall()  # Ambil semua hasil untuk mengosongkan buffer
 
         if not daftar_pengajuan:
@@ -545,17 +553,17 @@ def proses_pengajuan_kelas():
             return
 
         # Tampilkan daftar pengajuan
-        print("Daftar Pengajuan:")
+        print("\n===== Daftar Pengajuan =====")
         for pengajuan in daftar_pengajuan:
-            print("\n")
             print("="*40)
             print(f"ID Transaksi      : {pengajuan[0]}")
             print(f"ID Kelas          : {pengajuan[1]}")
-            print(f"NIM               : {pengajuan[2]}")
-            print(f"Email             : {pengajuan[3]}")
-            print(f"Diajukan oleh     : {pengajuan[6]}")
-            print(f"Tanggal Pengajuan : {pengajuan[4]}")
-            print(f"Status Saat Ini   : {pengajuan[5]}")
+            print(f"Kode Kelas        : {pengajuan[2]}")
+            print(f"Dosen             : {pengajuan[3]}")
+            print(f"Waktu Penggunaan  : {pengajuan[4]}, {pengajuan[5]} - {pengajuan[6]}")
+            print(f"Diajukan oleh     : {pengajuan[7]}")
+            print(f"Tanggal Pengajuan : {pengajuan[8]}")
+            print(f"Status Saat Ini   : {pengajuan[9]}")
             print("="*40)
 
         # Input ID pengajuan yang akan diproses
@@ -564,9 +572,9 @@ def proses_pengajuan_kelas():
         # Periksa apakah ID Pengajuan valid
         cursor.execute(
             """
-            SELECT transaksi.id_transaksi, transaksi.nim, transaksi.pengguna, transaksi.id_detail_kelas,
-                   detail_kelas.kode_kelas, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
-                   transaksi.tanggal_transaksi, transaksi.status_transaksi
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, transaksi.nim,
+                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
             WHERE transaksi.id_transaksi = %s
@@ -581,14 +589,15 @@ def proses_pengajuan_kelas():
 
         # Tampilkan detail pengajuan
         print("\n========== Detail Pengajuan ==========")
-        print(f"ID Transaksi        : {pesanan[0]}")
-        print(f"NIM Pemesan         : {pesanan[1]}")
-        print(f"Akan digunakan oleh : {pesanan[2]}")
-        print(f"ID Kelas            : {pesanan[3]}")
-        print(f"Kode Kelas          : {pesanan[4]}")
-        print(f"Waktu Penggunaan    : {pesanan[5]}, {pesanan[6]}-{pesanan[7]}")
-        print(f"Tanggal Pengajuan   : {pesanan[8]}")
-        print(f"Status Saat Ini     : {pesanan[9]}")
+        print(f"ID Transaksi      : {pesanan[0]}")
+        print(f"ID Kelas          : {pesanan[1]}")
+        print(f"NIM Pemesan       : {pesanan[2]}")
+        print(f"Kode Kelas        : {pesanan[3]}")
+        print(f"Dosen             : {pesanan[4]}")
+        print(f"Waktu Penggunaan  : {pesanan[5]}, {pesanan[6]} - {pesanan[7]}")
+        print(f"Diajukan oleh     : {pesanan[8]}")
+        print(f"Tanggal Pengajuan : {pesanan[9]}")
+        print(f"Status Saat Ini   : {pesanan[10]}")
         print("========================================")
 
         # Input keputusan dari admin

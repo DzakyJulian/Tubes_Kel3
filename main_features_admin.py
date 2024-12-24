@@ -1,5 +1,6 @@
 import mysql.connector
 from admin_db_info import get_current_mysql_password
+from enum import Enum
 
 # Koneksi ke database
 conn = mysql.connector.connect(
@@ -647,6 +648,83 @@ def proses_pengajuan_kelas():
                 print("Pengguna tidak ditemukan pada transaksi terkait.")
         else:
             print("Keputusan ditolak, tidak ada perubahan pada detail_kelas.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+
+    finally:
+        cursor.close()
+
+class StatusTransaksi(Enum):
+    ACC_PENGAJUAN = "ACC Pengajuan"
+    ACC_PEMBATALAN = "ACC Pembatalan"
+    PENGAJUAN_DITOLAK = "Pengajuan Ditolak"
+    PEMBATALAN_DITOLAK = "Pembatalan Ditolak"
+    PENGAJUAN_PENDING = "Pengajuan Pending"
+    PEMBATALAN_PENDING = "Pembatalan Pending"
+    PENGAJUAN_DIBATALKAN = "Pengajuan Dibatalakan"
+
+def proses_pembatalan_kelas_admin():
+    cursor = conn.cursor()
+    try:
+        # Ambil semua pengajuan pembatalan yang berstatus "Pembatalan Pending"
+        cursor.execute("SELECT * FROM transaksi WHERE status_transaksi = %s", (StatusTransaksi.PEMBATALAN_PENDING.value,))
+        daftar_pembatalan = cursor.fetchall()
+
+        if not daftar_pembatalan:
+            print("Tidak ada pengajuan pembatalan yang tersedia")
+            return
+        
+        # Tampilkan daftar pengajuan pembatalan kelas
+        print("Daftar pengajuan pembatalan kelas: ")
+        for pembatalan in daftar_pembatalan:
+            print("\n")
+            print("="*40)
+            print(f"ID Transaksi      : {pembatalan[0]}")
+            print(f"ID Kelas          : {pembatalan[1]}")
+            print(f"NIM               : {pembatalan[2]}")
+            print(f"Email             : {pembatalan[3]}")
+            print(f"Tanggal Pengajuan : {pembatalan[4]}")
+            print(f"Status Saat Ini   : {pembatalan[5]}")
+            print("="*40)
+
+            # Input ID pengajuan pembatalan yang akan diproses
+            id_pembatalan = input("Masukkan ID Pembatalan yang akan diproses: ").strip()
+
+            # Periksa apakah ID pembatalan valid
+            cursor.execute("SELECT * FROM Transaksi WHERE id_pembatalan = %s", (id_pembatalan,))
+        pembatalan = cursor.fetchone()
+         
+        if pembatalan is None or pembatalan[5] != StatusTransaksi.PEMBATALAN_PENDING.value:
+            print("ID Pembatalan tidak valid atau status tidak sesuai.")
+            return
+
+        # Tampilkan detail pengajuan pembatalan kelas
+        print("\nDetail Pembatalan:")
+        print(f"ID Transaksi      : {pembatalan[0]}")
+        print(f"ID Kelas          : {pembatalan[1]}")
+        print(f"NIM               : {pembatalan[2]}")
+        print(f"Email             : {pembatalan[3]}")
+        print(f"Tanggal Pengajuan : {pembatalan[4]}")
+        print(f"Status Saat Ini   : {pembatalan[5]}")
+     
+
+        # Input keputusan dari admin
+        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+
+        #Validasi keputusan
+        if keputusan.upper() not in ['Y', 'N']:
+            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            return
+        
+        # proses berdasarkan keputusan admin
+        status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
+
+        # Update status pembatalan berdasarkan keputusan admin
+        cursor.execute("UPDATE Transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_pembatalan))
+        conn.commit()
+
+        print(f"Pembatalan dengan ID {id_pembatalan} telah diproses dan statusnya di ubah menjadi'{status}'.")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

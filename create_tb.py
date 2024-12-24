@@ -84,6 +84,7 @@ def create_table():
             email VARCHAR(255) NOT NULL,
             tanggal_transaksi DATETIME NOT NULL,
             status_transaksi ENUM('ACC Pengajuan','ACC Pembatalan', 'Pengajuan Ditolak', 'Pembatalan Ditolak', 'Pengajuan Pending', 'Pembatalan Pending', 'Pengajuan Dibatalkan') NOT NULL,
+            pengguna VARCHAR(30) NOT NULL,
             komentar VARCHAR(255),
             FOREIGN KEY (nim) REFERENCES users(nim),
             FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)

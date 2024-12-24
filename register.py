@@ -15,8 +15,8 @@ def valid_email(email):
     return email.endswith('@gmail.com')
 
 def register_user():
-    print("\n=== Register ===")
-    username = input("Masukkan Nama: ").strip().lower()
+    print("\n=== Register Mahasiswa ===")
+    nim = input("Masukkan NIM: ").strip().lower()
     email = input("Masukkan Email: ").strip().lower()
     password = input("Masukkan Password: ").strip()
     password_hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -28,13 +28,13 @@ def register_user():
 
     try:
         cursor.execute('''
-        INSERT INTO users (username, email, password, user_role)
+        INSERT INTO users (nim, email, password, user_role)
         VALUES (%s, %s, %s, %s)
-        ''', (username, email, password_hashed.decode('utf-8'), role))
+        ''', (nim, email, password_hashed.decode('utf-8'), role))
         conn.commit()
         print("Registrasi berhasil!")
     except mysql.connector.IntegrityError:
-        print("Email sudah digunakan!")
+        print("Email atau NIM sudah digunakan!")
     finally:
         cursor.close()
         conn.close()

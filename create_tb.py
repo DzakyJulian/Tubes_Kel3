@@ -16,21 +16,10 @@ def create_table():
         # Tabel users
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
+            nim INT(20) PRIMARY KEY NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(60) NOT NULL,
             user_role ENUM('admin','mahasiswa') NOT NULL
-        )''')
-    
-        # Tabel mahasiswa
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mahasiswa (
-            nim INT(7) NOT NULL PRIMARY KEY,
-            nama VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            alamat TEXT NOT NULL,
-            no_tlp VARCHAR(20) NOT NULL
         )''')
     
         # Tabel dosen
@@ -75,24 +64,29 @@ def create_table():
             kode_kelas VARCHAR(30),
             kode_matkul VARCHAR(10),
             waktu_penggunaan DATETIME NOT NULL,
-            nip_dosen INT (20) NOT NULL,
+            jam_mulai TIME NOT NULL,
+            jam_selesai TIME NOT NULL,
+            nip_dosen INT(20) NOT NULL,
             informasi_kelas TEXT NOT NULL,
-            status ENUM('Tersedia','Tidak Tersedia') NOT NULL,
+            pengguna VARCHAR(30) NULL,
+            status ENUM('Tersedia', 'Digunakan') NOT NULL,
             FOREIGN KEY (kode_matkul) REFERENCES mata_kuliah(kode_matkul),
             FOREIGN KEY (nip_dosen) REFERENCES dosen(nip),
             FOREIGN KEY (kode_kelas) REFERENCES kelas(kode_kelas)
         )''')
     
-        # Tabel pengajuan
+        # Tabel transaksi
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS pengajuan (
-            id_pengajuan INT AUTO_INCREMENT PRIMARY KEY,
-            nim INT(7) NOT NULL,
-            kode_kelas VARCHAR(30) NOT NULL,
-            tanggal_pengajuan DATETIME NOT NULL,
-            status_pengajuan ENUM('Berhasil','Gagal') NOT NULL,
-            FOREIGN KEY (nim) REFERENCES mahasiswa(nim),
-            FOREIGN KEY (kode_kelas) REFERENCES kelas(kode_kelas)
+        CREATE TABLE IF NOT EXISTS transaksi (
+            id_transaksi INT AUTO_INCREMENT PRIMARY KEY,
+            id_detail_kelas INT(11),
+            nim INT(20) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            tanggal_transaksi DATETIME NOT NULL,
+            status_transaksi ENUM('Berhasil','Gagal', 'Pending') NOT NULL,
+            komentar VARCHAR(255),
+            FOREIGN KEY (nim) REFERENCES users(nim),
+            FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)
         )''')
     
         print("Tabel-tabel berhasil dibuat.")

@@ -73,7 +73,7 @@ def ajukan_kelas(nim, email):
                     try:
                         cursor.execute(''' 
                         INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi, pengguna)
-                        VALUES (%s, %s, %s, NOW(), 'Pending', %s)
+                        VALUES (%s, %s, %s, NOW(), 'Pengajuan Pending', %s)
                         ''', (nim, id_detail_kelas, email, pengguna))
                         conn.commit()
 
@@ -134,7 +134,7 @@ def batal_kelas(nim):
                     transaksi.pengguna, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
-            WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pending'
+            WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pengajuan Pending'
         ''', (nim,))
         result = cursor.fetchall()
 
@@ -174,7 +174,7 @@ def batal_kelas(nim):
             # Update status transaksi menjadi 'Cancelled'
             cursor.execute('''
                 UPDATE transaksi
-                SET status_transaksi = 'Dibatalkan'
+                SET status_transaksi = 'Pengajuan Dibatalkan'
                 WHERE id_transaksi = %s
             ''', (id_transaksi,))
             conn.commit()

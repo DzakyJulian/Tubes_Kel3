@@ -544,7 +544,7 @@ def proses_pengajuan_kelas():
                    transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
-            WHERE status_transaksi = 'Pending'
+            WHERE status_transaksi = 'Pengajuan Pending'
             """)
         daftar_pengajuan = cursor.fetchall()  # Ambil semua hasil untuk mengosongkan buffer
 
@@ -609,7 +609,7 @@ def proses_pengajuan_kelas():
             return
 
         # Tentukan status berdasarkan keputusan
-        status = 'ACC' if keputusan.upper() == 'Y' else 'Ditolak'
+        status = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
 
         # Update status transaksi berdasarkan keputusan
         cursor.execute(

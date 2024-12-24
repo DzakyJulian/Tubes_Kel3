@@ -688,19 +688,15 @@ def proses_pembatalan_kelas_admin():
             print(f"Status Saat Ini   : {pembatalan[5]}")
             print("="*40)
 
-            # Input ID pengajuan pembatalan yang akan diproses
-            id_pembatalan = input("Masukkan ID Pembatalan yang akan diproses: ").strip()
-
-            # Periksa apakah ID pembatalan valid
-            cursor.execute("SELECT * FROM Transaksi WHERE id_pembatalan = %s", (id_pembatalan,))
+        # Input ID pengajuan pembatalan yang akan diproses
+        id_transaksi = int(input("Masukkan ID transaksi yang akan diproses: ").strip())
+        
+        # Periksa apakah ID pembatalan valid
+        cursor.execute("SELECT * FROM transaksi WHERE id_transaksi = %s", (id_transaksi,))
         pembatalan = cursor.fetchone()
-         
-        if pembatalan is None or pembatalan[5] != StatusTransaksi.PEMBATALAN_PENDING.value:
-            print("ID Pembatalan tidak valid atau status tidak sesuai.")
-            return
 
         # Tampilkan detail pengajuan pembatalan kelas
-        print("\nDetail Pembatalan:")
+        print("\nDetail Pengajuan Pembatalan Kelas:")
         print(f"ID Transaksi      : {pembatalan[0]}")
         print(f"ID Kelas          : {pembatalan[1]}")
         print(f"NIM               : {pembatalan[2]}")
@@ -721,10 +717,10 @@ def proses_pembatalan_kelas_admin():
         status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
 
         # Update status pembatalan berdasarkan keputusan admin
-        cursor.execute("UPDATE Transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_pembatalan))
+        cursor.execute("UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_transaksi))
         conn.commit()
 
-        print(f"Pembatalan dengan ID {id_pembatalan} telah diproses dan statusnya di ubah menjadi'{status}'.")
+        print(f"Pembatalan dengan ID {id_transaksi} telah diproses dan statusnya di ubah menjadi '{status}'.")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

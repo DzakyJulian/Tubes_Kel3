@@ -18,7 +18,7 @@ def ajukan_kelas(nim, email):
         query = '''
         SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, 
                dosen.nama, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
-               detail_kelas.status, detail_kelas.pengguna 
+               detail_kelas.status, detail_kelas.pengguna, detail_kelas.hari 
         FROM detail_kelas 
         INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
         WHERE detail_kelas.status = 'Tersedia'
@@ -38,17 +38,18 @@ def ajukan_kelas(nim, email):
             print(f"Kode Mata Kuliah     : {row[2]}")
             print(f"NIP Dosen            : {row[3]}")
             print(f"Dosen yang mengajar  : {row[4]}")
-            print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
+            print(f"Waktu Penggunaan     : {row[10]}, {row[5]} - {row[6]}")
             print(f"Informasi Kelas      : {row[7]}")
-            print(f"Pengguna             : {row[8]}")
-            print(f"Status               : {row[9]}")
+            print(f"Pengguna             : {row[9]}")
+            print(f"Status               : {row[8]}")
             print("-" * 40)
 
-        # Input ID Detail Kelas yang ingin diajukan
+        pengguna = input("\nSiapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C): ").strip()
+        
         id_detail_kelas = input("\nMasukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
 
         cursor.execute('''
-        SELECT jam_mulai, jam_selesai FROM detail_kelas WHERE id_detail_kelas = %s
+        SELECT jam_mulai, jam_selesai, pengguna FROM detail_kelas WHERE id_detail_kelas = %s
         ''', (id_detail_kelas,))
         kelas_terpilih = cursor.fetchone()
 
@@ -58,31 +59,39 @@ def ajukan_kelas(nim, email):
 
         jam_mulai_baru = kelas_terpilih[0]
         jam_selesai_baru = kelas_terpilih[1]
+        pengguna_baru = kelas_terpilih[2]
 
-        if not cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
-            return
+        if pengguna_baru is None or pengguna_baru.strip() == '':
+            if not cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
+                return
 
-        valid_input = False
-        while not valid_input:
-            confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
-            
-            if confirmation.lower() == 'y':
-                try:
-                    cursor.execute(''' 
-                    INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi)
-                    VALUES (%s, %s, %s, NOW(), 'Pending')
-                    ''', (nim, id_detail_kelas, email))
-                    conn.commit()
-                    print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
+            valid_input = False
+            while not valid_input:
+                confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
+                
+                if confirmation.lower() == 'y':
+                    try:
+                        cursor.execute(''' 
+                        INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi, pengguna)
+                        VALUES (%s, %s, %s, NOW(), 'Pending', %s)
+                        ''', (nim, id_detail_kelas, email, pengguna))
+                        conn.commit()
+
+                        print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
+                        valid_input = True
+
+                    except mysql.connector.Error as err:
+                        print(f"Error: Terjadi kesalahan, tidak dapat memesan kelas. {err}")
+
+                elif confirmation.lower() == 'n':
+                    print("Anda tidak jadi memesan kelas ini.")
                     valid_input = True
-                except mysql.connector.Error as err:
-                    print(f"Error: Terjadi kesalahan, tidak dapat memesan kelas. {err}")
-            elif confirmation.lower() == 'n':
-                print("Anda tidak jadi memesan kelas ini.")
-                valid_input = True
-            else:
-                print("Input tidak valid.")
-    
+
+                else:
+                    print("Input tidak valid.")
+        else:
+            print(f"Digunakan oleh {pengguna_baru[2]}, tidak dapat memesan kelas ini.")
+
     except mysql.connector.Error as err:
         print(f"Error: Terjadi kesalahan saat mengambil data kelas. {err}")
     
@@ -94,15 +103,17 @@ def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
     try:
         query = '''
         SELECT * FROM detail_kelas 
-        WHERE status = 'Tersedia' 
-        AND ((jam_mulai BETWEEN %s AND %s) OR (jam_selesai BETWEEN %s AND %s) 
-             OR (%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+        WHERE status = 'Tersedia'
+        AND pengguna = ''
+        AND NOT (
+            (jam_mulai < %s AND jam_selesai > %s)
+        )
         '''
-        cursor.execute(query, (jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru, jam_mulai_baru, jam_selesai_baru))
+        cursor.execute(query, (jam_selesai_baru, jam_mulai_baru))
         results = cursor.fetchall()
 
         if results:
-            print("Tidak dapat mengajukan kelas, karena waktu tersebut sudah digunakan.")
+            print("Tidak dapat mengajukan kelas, karena waktu tersebut sudah digunakan oleh pengguna lain.")
             return False
         return True
     except mysql.connector.Error as err:
@@ -177,7 +188,7 @@ def batal_kelas(nim):
 def lihat_pesanan_saya(NIM):
     cursor = conn.cursor()
     try:
-        cursor.execute(f"SELECT * FROM transaksi INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = \"{NIM}\" ")
+        cursor.execute(f"SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, transaksi.status_transaksi FROM transaksi INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = \"{NIM}\" ")
         result = cursor.fetchall()
         
         if (len(result) == 0):
@@ -187,11 +198,11 @@ def lihat_pesanan_saya(NIM):
             for i in result:
                 print(f"ID Pesanan           : {i[0]}")
                 print(f"ID Detail Kelas      : {i[1]}")
-                print(f"Kode Kelas           : {i[8]}")
-                print(f"Jam Mulai            : {i[11]}")
-                print(f"Jam Selesai          : {i[12]}")
-                print(f"Tanggal Transaksi    : {i[4]}")
-                print(f"Status Transaksi     : {i[5]}")
+                print(f"Kode Kelas           : {i[2]}")
+                print(f"Jam Mulai            : {i[3]}")
+                print(f"Jam Selesai          : {i[4]}")
+                print(f"Tanggal Transaksi    : {i[5]}")
+                print(f"Status Transaksi     : {i[6]}")
                 print("=============================================")
 
     except mysql.connector.Error as err:

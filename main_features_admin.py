@@ -505,8 +505,8 @@ def tampilkan_kelas():
                 print(f"Dosen yang mengajar  : {row[4]}")
                 print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
                 print(f"Informasi Kelas      : {row[7]}")
-                print(f"Pengguna             : {row[9]}")
                 print(f"Status               : {row[8]}")
+                print(f"Pengguna             : {row[9]}")
                 print("-" * 40)
         else:
             print("Tidak ada data di tabel detail_kelas.")
@@ -538,7 +538,7 @@ def proses_pengajuan_kelas():
     try:
         # Ambil semua pengajuan yang tersedia
         cursor.execute("SELECT * FROM transaksi")
-        daftar_pengajuan = cursor.fetchall()
+        daftar_pengajuan = cursor.fetchall()  # Ambil semua hasil untuk mengosongkan buffer
 
         if not daftar_pengajuan:
             print("Tidak ada pengajuan yang tersedia.")
@@ -553,6 +553,7 @@ def proses_pengajuan_kelas():
             print(f"ID Kelas          : {pengajuan[1]}")
             print(f"NIM               : {pengajuan[2]}")
             print(f"Email             : {pengajuan[3]}")
+            print(f"Diajukan oleh     : {pengajuan[6]}")
             print(f"Tanggal Pengajuan : {pengajuan[4]}")
             print(f"Status Saat Ini   : {pengajuan[5]}")
             print("="*40)
@@ -561,21 +562,34 @@ def proses_pengajuan_kelas():
         id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
 
         # Periksa apakah ID Pengajuan valid
-        cursor.execute("SELECT * FROM transaksi WHERE id_transaksi = %s", (id_pesanan,))
-        pesanan = cursor.fetchone()
+        cursor.execute(
+            """
+            SELECT transaksi.id_transaksi, transaksi.nim, transaksi.pengguna, transaksi.id_detail_kelas,
+                   detail_kelas.kode_kelas, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   transaksi.tanggal_transaksi, transaksi.status_transaksi
+            FROM transaksi
+            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+            WHERE transaksi.id_transaksi = %s
+            """,
+            (id_pesanan,)
+        )
+        pesanan = cursor.fetchone()  # Pastikan hanya mengambil satu hasil
 
         if pesanan is None:
             print("ID Pengajuan tidak ditemukan.")
             return
 
         # Tampilkan detail pengajuan
-        print("\nDetail Pengajuan:")
-        print(f"ID Transaksi      : {pesanan[0]}")
-        print(f"ID Kelas          : {pesanan[1]}")
-        print(f"NIM               : {pesanan[2]}")
-        print(f"Email             : {pesanan[3]}")
-        print(f"Tanggal Pengajuan : {pesanan[4]}")
-        print(f"Status Saat Ini   : {pesanan[5]}")
+        print("\n========== Detail Pengajuan ==========")
+        print(f"ID Transaksi        : {pesanan[0]}")
+        print(f"NIM Pemesan         : {pesanan[1]}")
+        print(f"Akan digunakan oleh : {pesanan[2]}")
+        print(f"ID Kelas            : {pesanan[3]}")
+        print(f"Kode Kelas          : {pesanan[4]}")
+        print(f"Waktu Penggunaan    : {pesanan[5]}, {pesanan[6]}-{pesanan[7]}")
+        print(f"Tanggal Pengajuan   : {pesanan[8]}")
+        print(f"Status Saat Ini     : {pesanan[9]}")
+        print("========================================")
 
         # Input keputusan dari admin
         keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
@@ -589,13 +603,44 @@ def proses_pengajuan_kelas():
         status = 'ACC' if keputusan.upper() == 'Y' else 'Ditolak'
 
         # Update status transaksi berdasarkan keputusan
-        cursor.execute("UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_pesanan))
+        cursor.execute(
+            "UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s",
+            (status, id_pesanan),
+        )
         conn.commit()
 
         print(f"Pengajuan dengan ID {id_pesanan} telah diproses dan statusnya diubah menjadi '{status}'.")
-    
+
+        if status == 'ACC':
+            # Ambil pengguna dari transaksi terkait
+            cursor.execute(
+                "SELECT pengguna FROM transaksi WHERE id_transaksi = %s",
+                (id_pesanan,),
+            )
+            pengguna = cursor.fetchone()
+
+            if pengguna:
+                pengguna = pengguna[0]
+
+                # Update status dan pengguna pada tb.detail_kelas
+                cursor.execute(
+                    """
+                    UPDATE detail_kelas
+                    SET status = 'Digunakan', pengguna = %s
+                    WHERE id_detail_kelas = %s
+                    """,
+                    (pengguna, pesanan[3]),
+                )
+                conn.commit()
+
+                print("Status dan pengguna berhasil diperbarui pada detail_kelas.")
+            else:
+                print("Pengguna tidak ditemukan pada transaksi terkait.")
+        else:
+            print("Keputusan ditolak, tidak ada perubahan pada detail_kelas.")
+
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
-    
+
     finally:
         cursor.close()

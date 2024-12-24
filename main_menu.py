@@ -19,7 +19,7 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 # Menu untuk admin
-def admin_menu(nim, email):
+def admin_menu():
     while True:
         print("\n=== Menu Admin ===")
         print("1. Lihat Pengajuan Kelas")

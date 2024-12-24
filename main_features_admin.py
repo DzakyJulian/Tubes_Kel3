@@ -1,5 +1,6 @@
 import mysql.connector
 from admin_db_info import get_current_mysql_password
+from enum import Enum
 
 # Koneksi ke database
 conn = mysql.connector.connect(
@@ -288,23 +289,58 @@ def buat_kelas():
     cursor = conn.cursor()
     print("\n=== Buat Kelas ===")
 
+    # Memilih ruang kelas
+    print("\nPilih Ruang Kelas:")
+    cursor.execute("SELECT * FROM kelas")
+    ruang_kelas = cursor.fetchall()
+
+    if not ruang_kelas:
+        print("Tidak ada ruang kelas yang tersedia!")
+        return
+
+    for ruang in ruang_kelas:
+        print(f"Kode Kelas: {ruang[0]}, Informasi: {ruang[1]}")
+
+    kode_kelas = input("\nPilih Kode Kelas untuk kelas: ").strip()
+
+    # Menampilkan jadwal penggunaan ruang yang dipilih
+    query = """
+        SELECT kode_kelas, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas
+        WHERE kode_kelas = %s
+    """
+    cursor.execute(query, (kode_kelas,))
+    jadwal_ruang = cursor.fetchall()
+
+    if jadwal_ruang:
+        print("\nJadwal Penggunaan Ruang Kelas yang Dipilih:")
+        for jadwal in jadwal_ruang:
+            print("-" * 40)
+            print(f"Kode Kelas: {jadwal[0]}, Hari: {jadwal[1]}, Jam: {jadwal[2]} - {jadwal[3]}, Pengguna: {jadwal[4]}")
+            print("-" * 40)
+
     # Memilih dosen
     nip = input("Masukkan NIP Dosen: ").strip()
 
     try:
         # Ambil jadwal kosong dosen dari database
-        query = "SELECT id, hari, jam_mulai, jam_selesai FROM jadwal_dosen WHERE nip = %s"
+        query = """
+        SELECT jadwal_dosen.nip, dosen.nama, jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai
+        FROM jadwal_dosen
+        INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
+        WHERE jadwal_dosen.nip = %s
+        """
         cursor.execute(query, (nip,))
         jadwal_list = cursor.fetchall()
+
 
         if not jadwal_list:
             print("Tidak ada jadwal kosong untuk dosen ini!")
             return
 
-        print("\nJadwal Kosong Dosen:")
+        print(f"\nJadwal Kosong Dosen {jadwal_list[0][1]}:")
         for jadwal in jadwal_list:
             print("-"*40)
-            print(f"ID: {jadwal[0]}, Hari: {jadwal[1]}, Jam: {jadwal[2]} - {jadwal[3]}")
+            print(f"NIP: {jadwal[0]}, Dosen: {jadwal[1]}, Hari: {jadwal[2]}, Jam: {jadwal[3]} - {jadwal[4]}")
             print("-"*40)
 
         # Memilih mata kuliah
@@ -325,28 +361,64 @@ def buat_kelas():
         jam_mulai = input("Masukkan Jam Mulai (HH:MM, contoh: 08:00): ").strip()
         jam_selesai = input("Masukkan Jam Selesai (HH:MM, contoh: 10:00): ").strip()
 
-        # waktu_penggunaan = f"{hari} {jam_mulai} - {jam_selesai}"
+        # Validasi bentrok waktu
+        query = """
+            SELECT kode_kelas, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas 
+            WHERE kode_kelas = %s AND hari = %s AND ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+        """
+        cursor.execute(query, (kode_kelas, hari, jam_mulai, jam_selesai))
+        kelas_bentrok = cursor.fetchall()
 
-        # Memilih ruang kelas
-        print("\nPilih Ruang Kelas:")
-        cursor.execute("SELECT * FROM kelas")
-        ruang_kelas = cursor.fetchall()
-
-        if not ruang_kelas:
-            print("Tidak ada ruang kelas yang tersedia!")
+        if kelas_bentrok:
+            print("\nJadwal yang Anda pilih bertabrakan dengan kelas-kelas berikut:")
+            print("-" * 40)
+            for kelas in kelas_bentrok:
+                print(f"Kode Kelas: {kelas[0]}, Hari: {kelas[1]}, Jam: {kelas[2]} - {kelas[3]}, Pengguna: {kelas[4]}")
+            print("-" * 40)
+            print("Silakan pilih jadwal yang berbeda.")
             return
 
-        for ruang in ruang_kelas:
-            print(f"Kode Kelas: {ruang[0]}, Informasi: {ruang[1]}")
+        # Validasi bentrok ruang kelas
+        query = """
+            SELECT kode_kelas, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas 
+            WHERE kode_kelas = %s AND hari = %s AND ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+        """
+        cursor.execute(query, (kode_kelas, hari, jam_mulai, jam_selesai))
+        ruang_bentrok = cursor.fetchall()
 
-        kode_kelas = input("\nPilih Kode Kelas untuk kelas: ").strip()
+        if ruang_bentrok:
+            print("\nRuang kelas yang Anda pilih sudah terpakai pada waktu tersebut!")
+            print("\nBerikut adalah kelas-kelas yang menggunakan ruang tersebut:")
+            print("-" * 40)
+            for ruang in ruang_bentrok:
+                print(f"Kode Kelas: {ruang[0]}, Hari: {ruang[1]}, Jam: {ruang[2]} - {ruang[3]}, Pengguna: {ruang[4]}")
+            print("-" * 40)
+            print("Silakan pilih ruang kelas yang berbeda.")
+            return
 
-        pengguna = input("\nMasukkan nama pengguna kelas(Contoh: RPL 1-C): ").strip()
+        # Memasukkan nama pengguna kelas
+        pengguna = input("\nPengguna kelas (Contoh: RPL 1-C, kosongkan jika tidak ada pengguna): ").strip()
+
+        # Tentukan status kelas
+        status = 'Tersedia' if not pengguna else 'Digunakan'
 
         # Simpan data kelas ke database
-        informasi_kelas = f"Kelas untuk mata kuliah {kode_matkul} dengan dosen NIP {nip} pada hari {hari}, jam {jam_mulai} - {jam_selesai} di ruang {kode_kelas}."
-        query = "INSERT INTO detail_kelas (kode_kelas, kode_matkul, nip_dosen, jam_mulai, jam_selesai, informasi_kelas, pengguna, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(query, (kode_kelas, kode_matkul, nip, jam_mulai, jam_selesai, informasi_kelas, pengguna, 'Digunakan'))
+        query = "SELECT informasi_kelas FROM kelas WHERE kode_kelas = %s"
+        cursor.execute(query, (kode_kelas,))
+        informasi_kelas_data = cursor.fetchone()
+
+        if not informasi_kelas_data:
+            print("Informasi kelas tidak ditemukan di tabel kelas.")
+            return
+
+        informasi_kelas = informasi_kelas_data[0]  # Pastikan ini mengakses kolom yang benar (kolom 1)
+
+        # Simpan data kelas ke database
+        query = """
+            INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, nip_dosen, jam_mulai, jam_selesai, informasi_kelas, pengguna, status) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (kode_kelas, kode_matkul, hari, nip, jam_mulai, jam_selesai, informasi_kelas, pengguna, status))
         conn.commit()
         print("Kelas berhasil dibuat.")
 
@@ -433,9 +505,9 @@ def tampilkan_kelas():
                 print(f"NIP Dosen            : {row[3]}")
                 print(f"Dosen yang mengajar  : {row[4]}")
                 print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
-                print(f"Informasi Kelas      : {row[6]}")
-                print(f"Pengguna             : {row[7]}")
-                print(f"Status               : {row[8]} oleh {row[9]}")
+                print(f"Informasi Kelas      : {row[7]}")
+                print(f"Status               : {row[8]}")
+                print(f"Pengguna             : {row[9]}")
                 print("-" * 40)
         else:
             print("Tidak ada data di tabel detail_kelas.")
@@ -459,5 +531,203 @@ def view_datakelas():
             print("Tidak ada data kelas.")
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+    finally:
+        cursor.close()
+
+def proses_pengajuan_kelas():
+    cursor = conn.cursor()
+    try:
+        # Ambil semua pengajuan yang tersedia
+        cursor.execute(
+            """
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
+                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+            FROM transaksi
+            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+            WHERE status_transaksi = 'Pengajuan Pending'
+            """)
+        daftar_pengajuan = cursor.fetchall()  # Ambil semua hasil untuk mengosongkan buffer
+
+        if not daftar_pengajuan:
+            print("Tidak ada pengajuan yang tersedia.")
+            return
+
+        # Tampilkan daftar pengajuan
+        print("\n===== Daftar Pengajuan =====")
+        for pengajuan in daftar_pengajuan:
+            print("="*40)
+            print(f"ID Transaksi      : {pengajuan[0]}")
+            print(f"ID Kelas          : {pengajuan[1]}")
+            print(f"Kode Kelas        : {pengajuan[2]}")
+            print(f"Dosen             : {pengajuan[3]}")
+            print(f"Waktu Penggunaan  : {pengajuan[4]}, {pengajuan[5]} - {pengajuan[6]}")
+            print(f"Diajukan oleh     : {pengajuan[7]}")
+            print(f"Tanggal Pengajuan : {pengajuan[8]}")
+            print(f"Status Saat Ini   : {pengajuan[9]}")
+            print("="*40)
+
+        # Input ID pengajuan yang akan diproses
+        id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
+
+        # Periksa apakah ID Pengajuan valid
+        cursor.execute(
+            """
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, transaksi.nim,
+                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+            FROM transaksi
+            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+            WHERE transaksi.id_transaksi = %s
+            """,
+            (id_pesanan,)
+        )
+        pesanan = cursor.fetchone()  # Pastikan hanya mengambil satu hasil
+
+        if pesanan is None:
+            print("ID Pengajuan tidak ditemukan.")
+            return
+
+        # Tampilkan detail pengajuan
+        print("\n========== Detail Pengajuan ==========")
+        print(f"ID Transaksi      : {pesanan[0]}")
+        print(f"ID Kelas          : {pesanan[1]}")
+        print(f"NIM Pemesan       : {pesanan[2]}")
+        print(f"Kode Kelas        : {pesanan[3]}")
+        print(f"Dosen             : {pesanan[4]}")
+        print(f"Waktu Penggunaan  : {pesanan[5]}, {pesanan[6]} - {pesanan[7]}")
+        print(f"Diajukan oleh     : {pesanan[8]}")
+        print(f"Tanggal Pengajuan : {pesanan[9]}")
+        print(f"Status Saat Ini   : {pesanan[10]}")
+        print("========================================")
+
+        # Input keputusan dari admin
+        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+
+        # Validasi keputusan
+        if keputusan.upper() not in ["Y", "N"]:
+            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            return
+
+        # Tentukan status berdasarkan keputusan
+        status = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
+
+        # Update status transaksi berdasarkan keputusan
+        cursor.execute(
+            "UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s",
+            (status, id_pesanan),
+        )
+        conn.commit()
+
+        print(f"Pengajuan dengan ID {id_pesanan} telah diproses dan statusnya diubah menjadi '{status}'.")
+
+        if status == 'ACC':
+            # Ambil pengguna dari transaksi terkait
+            cursor.execute(
+                "SELECT pengguna FROM transaksi WHERE id_transaksi = %s",
+                (id_pesanan,),
+            )
+            pengguna = cursor.fetchone()
+
+            if pengguna:
+                pengguna = pengguna[0]
+
+                # Update status dan pengguna pada tb.detail_kelas
+                cursor.execute(
+                    """
+                    UPDATE detail_kelas
+                    SET status = 'Digunakan', pengguna = %s
+                    WHERE id_detail_kelas = %s
+                    """,
+                    (pengguna, pesanan[3]),
+                )
+                conn.commit()
+
+                print("Status dan pengguna berhasil diperbarui pada detail_kelas.")
+            else:
+                print("Pengguna tidak ditemukan pada transaksi terkait.")
+        else:
+            print("Keputusan ditolak, tidak ada perubahan pada detail_kelas.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+
+    finally:
+        cursor.close()
+
+class StatusTransaksi(Enum):
+    ACC_PENGAJUAN = "ACC Pengajuan"
+    ACC_PEMBATALAN = "ACC Pembatalan"
+    PENGAJUAN_DITOLAK = "Pengajuan Ditolak"
+    PEMBATALAN_DITOLAK = "Pembatalan Ditolak"
+    PENGAJUAN_PENDING = "Pengajuan Pending"
+    PEMBATALAN_PENDING = "Pembatalan Pending"
+    PENGAJUAN_DIBATALKAN = "Pengajuan Dibatalakan"
+
+def proses_pembatalan_kelas_admin():
+    cursor = conn.cursor()
+    try:
+        # Ambil semua pengajuan pembatalan yang berstatus "Pembatalan Pending"
+        cursor.execute("SELECT * FROM transaksi WHERE status_transaksi = %s", (StatusTransaksi.PEMBATALAN_PENDING.value,))
+        daftar_pembatalan = cursor.fetchall()
+
+        if not daftar_pembatalan:
+            print("Tidak ada pengajuan pembatalan yang tersedia")
+            return
+        
+        # Tampilkan daftar pengajuan pembatalan kelas
+        print("Daftar pengajuan pembatalan kelas: ")
+        for pembatalan in daftar_pembatalan:
+            print("\n")
+            print("="*40)
+            print(f"ID Transaksi      : {pembatalan[0]}")
+            print(f"ID Kelas          : {pembatalan[1]}")
+            print(f"NIM               : {pembatalan[2]}")
+            print(f"Email             : {pembatalan[3]}")
+            print(f"Tanggal Pengajuan : {pembatalan[4]}")
+            print(f"Status Saat Ini   : {pembatalan[5]}")
+            print("="*40)
+
+            # Input ID pengajuan pembatalan yang akan diproses
+            id_pembatalan = input("Masukkan ID Pembatalan yang akan diproses: ").strip()
+
+            # Periksa apakah ID pembatalan valid
+            cursor.execute("SELECT * FROM Transaksi WHERE id_pembatalan = %s", (id_pembatalan,))
+        pembatalan = cursor.fetchone()
+         
+        if pembatalan is None or pembatalan[5] != StatusTransaksi.PEMBATALAN_PENDING.value:
+            print("ID Pembatalan tidak valid atau status tidak sesuai.")
+            return
+
+        # Tampilkan detail pengajuan pembatalan kelas
+        print("\nDetail Pembatalan:")
+        print(f"ID Transaksi      : {pembatalan[0]}")
+        print(f"ID Kelas          : {pembatalan[1]}")
+        print(f"NIM               : {pembatalan[2]}")
+        print(f"Email             : {pembatalan[3]}")
+        print(f"Tanggal Pengajuan : {pembatalan[4]}")
+        print(f"Status Saat Ini   : {pembatalan[5]}")
+     
+
+        # Input keputusan dari admin
+        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+
+        #Validasi keputusan
+        if keputusan.upper() not in ['Y', 'N']:
+            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            return
+        
+        # proses berdasarkan keputusan admin
+        status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
+
+        # Update status pembatalan berdasarkan keputusan admin
+        cursor.execute("UPDATE Transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_pembatalan))
+        conn.commit()
+
+        print(f"Pembatalan dengan ID {id_pembatalan} telah diproses dan statusnya di ubah menjadi'{status}'.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+
     finally:
         cursor.close()

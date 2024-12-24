@@ -17,6 +17,8 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 def login():
+    from main_menu import mahasiswa_menu, admin_menu  # Memindahkan import ke dalam fungsi login
+    
     attempts = 0  # Hitungan percobaan login
     
     while attempts < 3:  # Memberikan 3 kali kesempatan login
@@ -35,7 +37,6 @@ def login():
             continue  # Kembali ke pemilihan role
 
         print(f"Anda memilih untuk login sebagai {role.capitalize()}.")
-
         # Masukkan NIM dan password sesuai dengan role yang dipilih
         nim = input("Masukkan NIM: ").lower()
         password = input("Masukkan Password: ").strip()
@@ -43,8 +44,8 @@ def login():
         # Normalisasi password
         password = unicodedata.normalize("NFKC", password).strip()
 
-        # Check NIM di database
-        cursor.execute(f"SELECT nim, email, password, user_role FROM users WHERE nim = \"{nim}\"")
+        # Check NIM di database dengan parameterized query untuk mencegah SQL injection
+        cursor.execute("SELECT nim, email, password, user_role FROM users WHERE nim = %s", (nim,))
         result = cursor.fetchone()
 
         if result is None:
@@ -60,14 +61,23 @@ def login():
             if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                 if user_role == role:
                     print(f"Login berhasil sebagai {role.capitalize()}.")
-                    cursor.close()
-                    conn.close()
-                    return result  # Kembalikan kredensial yang berhasil login
+                    
+                    # Menjaga koneksi tetap terbuka dan mengarahkan ke menu yang tepat
+                    if role == 'mahasiswa':
+                        print("Masuk ke menu mahasiswa...")
+                        mahasiswa_menu(nim, email)  # Memanggil mahasiswa_menu dengan nim dan email
+                        return  # Keluar dari login setelah berhasil masuk ke menu mahasiswa
+                    else:
+                        print("Masuk ke menu admin...")
+                        admin_menu()  # Panggil fungsi admin_menu() atau yang sesuai jika login sebagai admin
+                        return  # Keluar dari login setelah berhasil masuk ke menu admin
                 else:
                     print(f"Login gagal! Anda terdaftar sebagai {user_role}, bukan sebagai {role}.")
             else:
                 print("Login gagal! NIM atau password salah.")
             attempts += 1
 
+    print("Login gagal setelah 3 kali percobaan.")
     cursor.close()
     conn.close()
+

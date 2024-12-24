@@ -143,3 +143,47 @@ def lihat_pesanan_saya(NIM):
                 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
+def batalkan_kelas(nim, id_pesanan):
+    cursor = conn.cursor()
+    try:
+        # Periksa apakah pesanan berstatus 'Pending'
+        cursor.execute('''
+        SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s AND status_transaksi = 'Pending'
+        ''', (id_pesanan, nim))
+        pesanan = cursor.fetchone()
+
+        if pesanan:
+            # Jika pesanan berstatus 'Pending', langsung batalkan
+            cursor.execute('''
+            UPDATE transaksi SET status_transaksi = 'Dibatalkan' WHERE id_transaksi = %s
+            ''', (id_pesanan,))
+            conn.commit()
+            print(f"Pesanan dengan ID {id_pesanan} berhasil dibatalkan.")
+            return
+
+        # Periksa apakah pesanan sudah di-ACC oleh admin
+        cursor.execute('''
+        SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s AND status_transaksi = 'ACC Pengajuan'
+        ''', (id_pesanan, nim))
+        pesanan_acc = cursor.fetchone()
+
+        if pesanan_acc:
+            # Jika sudah di-ACC, ubah status menjadi 'Pembatalan Pending'
+            cursor.execute('''
+            UPDATE transaksi SET status_transaksi = 'Pembatalan Pending' WHERE id_transaksi = %s
+            ''', (id_pesanan,))
+            conn.commit()
+            print(f"Pengajuan pembatalan untuk ID {id_pesanan} berhasil diajukan. Menunggu konfirmasi admin.")
+        else:
+            print(f"Pesanan dengan ID {id_pesanan} tidak ditemukan atau tidak dapat dibatalkan. Status saat ini: {pesanan_acc['status_transaksi'] if pesanan_acc else 'tidak ada'}.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
+def logout():
+    print("\nAnda telah logout. Sampai jumpa lagi!!!") 

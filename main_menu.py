@@ -8,6 +8,7 @@ from main_features_mhs import ajukan_kelas, lihat_pesanan_saya, batal_kelas
 from register import register_user
 from login import login_main
 from admin_db_info import get_current_mysql_password
+from prettytable import PrettyTable
 
 # Koneksi ke database MySQL
 conn = mysql.connector.connect(
@@ -21,22 +22,25 @@ cursor = conn.cursor()
 # Menu untuk admin
 def admin_menu():
     while True:
-        print("\n=== Menu Admin ===")
-        print("1. Lihat Pengajuan Kelas")
-        print("2. Lihat Pengajuan Pembatalan Kelas")
-        print("3. Tambah Mata Kuliah")
-        print("4. Lihat Data Mata Kuliah")
-        print("5. Tambah Data Dosen")
-        print("6. Lihat Data Dosen")
-        print("7. Input Jadwal Kosong Dosen")
-        print("8. Lihat Jadwal Kosong Seluruh Dosen")
-        print("9. Edit Jadwal Kosong Dosen")
-        print("10. Tambah Ruang Kelas")
-        print("11. Lihat Data Ruang Kelas")
-        print("12. Buat Kelas Baru")
-        print("13. Edit Kelas")
-        print("14. Lihat Kelas yang Telah Dibuat")
-        print("15. Logout")
+
+        table = PrettyTable()
+        table.field_names = ["No", "Menu Admin"]
+        table.add_row([1, "Lihat Pengajuan Kelas"])
+        table.add_row([2, "Lihat Pengajuan Pembatalan Kelas"])
+        table.add_row([3, "Tambah Mata Kuliah"])
+        table.add_row([4, "Lihat Data Mata Kuliah"])
+        table.add_row([5, "Tambah Data Dosen"])
+        table.add_row([6, "Lihat Data Dosen"])
+        table.add_row([7, "Input Jadwal Kosong Dosen"])
+        table.add_row([8, "Lihat Jadwal Kosong Seluruh Dosen"])
+        table.add_row([9, "Edit Jadwal Kosong Dosen"])
+        table.add_row([10, "Tambah Ruang Kelas"])
+        table.add_row([11, "Lihat Data Ruang Kelas"])
+        table.add_row([12, "Buat Kelas Baru"])
+        table.add_row([13, "Edit Kelas"])
+        table.add_row([14, "Lihat Kelas yang Telah Dibuat"])
+        table.add_row([15, "Logout"])
+        print(table)
         
         choice = input("Pilih menu: ").strip()
 
@@ -76,13 +80,15 @@ def admin_menu():
 
 def mahasiswa_menu(nim, email):
     while True:
-        print("\n=== Menu Mahasiswa ===")
-        print("1. Lihat Kelas")
-        print("2. Ajukan Kelas")
-        print("3. Lihat Profil (maintenance)")
-        print("4. Lihat Pesanan Saya")
-        print("5. Batalkan Kelas")
-        print("6. Logout")
+        table = PrettyTable()
+        table.field_names = ["No", "Menu Mahasiswa"]
+        table.add_row([1, "Lihat Kelas"])
+        table.add_row([2, "Ajukan Kelas"])
+        table.add_row([3, "Lihat Profil (maintenance)"])
+        table.add_row([4, "Lihat Pesanan Saya"])
+        table.add_row([5, "Batalkan Kelas"])
+        table.add_row([6, "Logout"])
+        print(table)
         
         pilihan = input("\nMasukkan pilihan (1-6): ").strip()
 
@@ -102,11 +108,13 @@ def mahasiswa_menu(nim, email):
 
 def main():
     while True:
-        print("\n=== Sistem E-Booking Class ===")
-        print("1. Login")
-        print("2. Register")
-        print("3. Keluar")
-        
+        table = PrettyTable()
+        table.field_names = ["No", "Sistem E-Booking Class"]
+        table.add_row([1, "Login"])
+        table.add_row([2, "Register"])
+        table.add_row([3, "Keluar"])
+        print(table)
+    
         choice = input("Pilih menu: ").strip()
 
         if choice == '1':

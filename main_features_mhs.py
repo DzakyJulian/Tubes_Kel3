@@ -1,5 +1,6 @@
 import mysql.connector
 from admin_db_info import get_current_mysql_password
+from prettytable import PrettyTable
 
 # Koneksi ke database
 conn = mysql.connector.connect(
@@ -31,18 +32,20 @@ def ajukan_kelas(nim, email):
             print("Tidak ada kelas yang tersedia saat ini.")
             return
 
-        for row in results:
-            print("-" * 40)
-            print(f"ID Detail Kelas      : {row[0]}")
-            print(f"Kode Kelas           : {row[1]}")
-            print(f"Kode Mata Kuliah     : {row[2]}")
-            print(f"NIP Dosen            : {row[3]}")
-            print(f"Dosen yang mengajar  : {row[4]}")
-            print(f"Waktu Penggunaan     : {row[10]}, {row[5]} - {row[6]}")
-            print(f"Informasi Kelas      : {row[7]}")
-            print(f"Pengguna             : {row[9]}")
-            print(f"Status               : {row[8]}")
-            print("-" * 40)
+
+        # Menampilkan daftar kelas yang tersedia
+        if results:
+           print("\n=== Detail Kelas ===")
+           table = PrettyTable()
+           table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+           for row in results:
+            table.add_row([
+                row[0], row[1], row[2], row[3], 
+                row[4], row[5], row[6], row[7], 
+                row[8], row[9]])
+            print(table)
+        else:
+            print("Tidak ada Data Kelas ")    
 
         pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C): ").strip()
         id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
@@ -214,21 +217,27 @@ def lihat_pesanan_saya(NIM):
                 """)
         result = cursor.fetchall()
         
-        if (len(result) == 0):
+        if len(result) == 0:  # Jika tidak ada data
             print("Anda belum memiliki pesanan kelas.")
         else:
             print("\n============== Pesanan Saya =================")
+            table = PrettyTable()
+            table.field_names = ["ID Pesanan", "ID Detail Kelas", "Kode Kelas", "Jam Mulai", "Jam Selesai", "Tanggal Transaksi", "Status Transaksi"]
+            
             for i in result:
-                print(f"ID Pesanan           : {i[0]}")
-                print(f"ID Detail Kelas      : {i[1]}")
-                print(f"Kode Kelas           : {i[2]}")
-                print(f"Dosen                : {i[3]}")
-                print(f"Waktu Penggunaan     : {i[4]}, {i[5]} - {i[6]}")
-                print(f"Tanggal Transaksi    : {i[7]}")
-                print(f"Diajukan untuk kelas : {i[8]}")
-                print(f"Status Transaksi     : {i[9]}")
-                print(f"Komentar             : {i[10] if i[10] != None else "Tidak ada"}")
-                print("=============================================")
-
+                table.add_row([
+                    i[0],  # ID Pesanan
+                    i[1],  # ID Detail Kelas
+                    i[8],  # Kode Kelas
+                    i[11], # Jam Mulai
+                    i[12], # Jam Selesai
+                    i[4],  # Tanggal Transaksi
+                    i[5]   # Status Transaksi
+                ])
+            print(table)
+                
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+

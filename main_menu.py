@@ -6,7 +6,7 @@ from main_features_admin import (
 )
 from main_features_mhs import ajukan_kelas, lihat_pesanan_saya, batal_kelas
 from register import register_user
-from login import login
+from login import login_main
 from admin_db_info import get_current_mysql_password
 
 # Koneksi ke database MySQL
@@ -111,7 +111,7 @@ def main():
 
         if choice == '1':
             # Pilihan login
-            result = login()  # Memanggil fungsi login
+            result = login_main()  # Memanggil fungsi login
 
             if result is not None:
                 user_nim, user_email, _, user_role = result

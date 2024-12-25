@@ -39,7 +39,7 @@ def ajukan_kelas(nim, email):
            table = PrettyTable()
            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
            for row in results:
-            table.add_row([
+            table.add_row([ 
                 row[0], row[1], row[2], row[3], 
                 row[4], row[5], row[6], row[7], 
                 row[8], row[9]])
@@ -47,8 +47,15 @@ def ajukan_kelas(nim, email):
         else:
             print("Tidak ada Data Kelas ")    
 
-        pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C): ").strip()
-        id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
+        pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C) atau ketik 0 untuk kembali: ").strip()
+        
+        if pengguna == '0':
+            return
+        
+        id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas) atau ketik 0 untuk kembali: ").strip()
+
+        if id_detail_kelas == '0':
+            return
 
         cursor.execute('''
         SELECT jam_mulai, jam_selesai, pengguna FROM detail_kelas WHERE id_detail_kelas = %s
@@ -69,7 +76,7 @@ def ajukan_kelas(nim, email):
 
             valid_input = False
             while not valid_input:
-                confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N): ")
+                confirmation = input(f"Apakah anda yakin ingin memesan kelas ini? (Y/N) atau ketik 0 untuk kembali: ")
                 
                 if confirmation.lower() == 'y':
                     try:
@@ -88,6 +95,9 @@ def ajukan_kelas(nim, email):
                 elif confirmation.lower() == 'n':
                     print("Anda tidak jadi memesan kelas ini.")
                     valid_input = True
+
+                elif confirmation == '0':
+                    return
 
                 else:
                     print("Input tidak valid.")
@@ -130,7 +140,7 @@ def batal_kelas(nim):
     try:
         # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
         print("\n--- Pesanan Kelas Anda ---")
-        cursor.execute('''
+        cursor.execute(''' 
             SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
                     detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
                     transaksi.pengguna, transaksi.status_transaksi
@@ -158,7 +168,10 @@ def batal_kelas(nim):
             print("-" * 40)
 
         # Input ID Pesanan yang ingin dibatalkan
-        id_transaksi = input("Masukkan ID Pesanan yang ingin dibatalkan: ").strip()
+        id_transaksi = input("Masukkan ID Pesanan yang ingin dibatalkan atau ketik 0 untuk kembali: ").strip()
+
+        if id_transaksi == '0':
+            return
 
         # Verifikasi ID Transaksi yang dipilih
         cursor.execute('''
@@ -172,12 +185,12 @@ def batal_kelas(nim):
             return
 
         # Proses konfirmasi pembatalan
-        confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N): ")
+        confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N) atau ketik 0 untuk kembali: ")
         if confirmation.lower() == 'y':
 
             if status_transaksi_terpilih == "Pengajuan Pending":
                 # Jika pesanan berstatus 'Pengajuan Pending', langsung batalkan
-                cursor.execute('''
+                cursor.execute(''' 
                 UPDATE transaksi SET status_transaksi = 'Pengajuan Dibatalkan' WHERE id_transaksi = %s AND nim = %s
                 ''', (id_transaksi, nim))
                 conn.commit()
@@ -186,7 +199,7 @@ def batal_kelas(nim):
 
             if status_transaksi_terpilih == "ACC Pengajuan":
                 # Jika sudah di-ACC, ubah status menjadi 'Pembatalan Pending'
-                cursor.execute('''
+                cursor.execute(''' 
                 UPDATE transaksi SET status_transaksi = 'Pembatalan Pending' WHERE id_transaksi = %s AND nim = %s
                 ''', (id_transaksi, nim))
                 conn.commit()
@@ -197,87 +210,11 @@ def batal_kelas(nim):
             
         elif confirmation.lower() == 'n':
             print("Pembatalan dibatalkan.")
+        elif confirmation == '0':
+            return
         else:
             print("Input tidak valid.")
-
     except mysql.connector.Error as err:
-        print(f"Error: Terjadi kesalahan saat membatalkan pesanan kelas. {err}")
+        print(f"Error: Terjadi kesalahan saat mengambil data transaksi. {err}")
     finally:
         cursor.close()
-
-def lihat_pesanan_saya(NIM):
-    cursor = conn.cursor()
-    try:
-        cursor.execute(f"""
-                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
-                       detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
-                       transaksi.pengguna, transaksi.status_transaksi, transaksi.komentar
-                FROM transaksi 
-                       INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
-                """)
-        result = cursor.fetchall()
-        
-        if len(result) == 0:  # Jika tidak ada data
-            print("Anda belum memiliki pesanan kelas.")
-        else:
-            print("\n[ Pesanan Saya ]")
-            table = PrettyTable()
-            table.field_names = [
-                "ID Pesanan",
-                "ID Detail Kelas", 
-                "Kode Kelas", 
-                "Jam Mulai", 
-                "Jam Selesai", 
-                "Tanggal Transaksi", 
-                "Status Transaksi",
-            ]
-            
-            for i in result:
-                table.add_row([
-                    i[0],  # ID Pesanan
-                    i[1],  # ID Detail Kelas
-                    i[2],  # Kode Kelas
-                    i[5], # Jam Mulai
-                    i[6], # Jam Selesai
-                    i[7],  # Tanggal Transaksi
-                    i[9]   # Status Transaksi
-                ])
-            print(table)
-                
-    except mysql.connector.Error as err:
-        print(f"Terjadi kesalahan: {err}")
-    finally:
-        cursor.close()
-
-def pengajuan():
-    cursor = conn.cursor()
-
-    print("======= Pengajuan Pemakaian Kelas =======")
-    pengguna = input("Diajukan oleh: ").strip()
-    kode_kelas = input("Masukkan kode kelas: ").strip()
-    nip_dosen = input("Masukkan NIP dosen: ").strip()
-    kode_matkul = input("Masukkan kode matkul: ").strip()
-    hari = input("Masukkan hari: ").strip()
-    jam_mulai = input("Masukkan jam mulai: ").strip()
-    jam_selesai = input("Masukkan jam selesai: ").strip()
-    
-    cursor.execute("SELECT informasi_kelas FROM kelas WHERE kode_kelas = %s", (kode_kelas,))
-    results = cursor.fetchone()
-
-    infoKelas = results[0]
-
-    cursor.execute("SELECT nama FROM dosen WHERE nip = %s", (nip_dosen,))
-    nama = cursor.fetchone()
-
-    nama_dosen = nama[0]
-
-
-    cursor.execute("""INSERT INTO pengajuan (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, 
-                    jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')""", 
-                   (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
-    conn.commit()
-
-    print("Data pengajuan dikirim ke Akademik. Silahkan tunggu konfirmasi dari Akademik.")
-
-    

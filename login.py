@@ -78,7 +78,7 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                         admin_menu()
                     return
                 else:
-                    print(f"Login gagal! Anda terdaftar sebagai {user_role}, bukan sebagai {role}.")
+                    print("Login gagal! NIM atau password salah.")
             else:
                 print("Login gagal! NIM atau password salah.")
 

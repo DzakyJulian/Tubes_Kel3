@@ -433,33 +433,41 @@ def buat_kelas():
         jam_selesai = input("Masukkan Jam Selesai (HH:MM, contoh: 10:00): ").strip()
         if jam_selesai == '0':
             return
+try:
+    # Validasi format jam
+    try:
+        jam_mulai_dt = datetime.strptime(jam_mulai, "%H:%M")
+        jam_selesai_dt = datetime.strptime(jam_selesai, "%H:%M")
+    except ValueError:
+        print("Format jam salah! Gunakan format HH:MM.")
+        continue
 
-        try:
-            # Validasi format jam
-            jam_mulai = datetime.strptime(jam_mulai, "%H:%M").strftime("%H:%M")
-            jam_selesai = datetime.strptime(jam_selesai, "%H:%M").strftime("%H:%M")
-        except ValueError:
-            print("Format jam salah! Gunakan format HH:MM.")
-            continue
+    # Validasi logis: jam mulai harus lebih kecil dari jam selesai
+    if jam_mulai_dt >= jam_selesai_dt:
+        print("Jam mulai harus lebih kecil dari jam selesai. Silakan masukkan ulang.")
+        continue
 
-        # Validasi jadwal dosen
-        query_dosen = """
-            SELECT nip, hari, jam_mulai, jam_selesai
-            FROM jadwal_dosen
-            WHERE nip = %s AND hari = %s
-            AND (
-                (%s BETWEEN jam_mulai AND jam_selesai)
-                OR (%s BETWEEN jam_mulai AND jam_selesai)
-            )
-        """
-        cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai, jam_selesai))
-        jadwal_bentrok_dosen = cursor.fetchall()
+    # Validasi jadwal dosen
+    query_dosen = """
+        SELECT nip, hari, jam_mulai, jam_selesai
+        FROM jadwal_dosen
+        WHERE nip = %s AND hari = %s AND NOT (
+            (%s BETWEEN jam_mulai AND jam_selesai) OR 
+            (%s BETWEEN jam_mulai AND jam_selesai)
+        )
+    """
+    cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai, jam_selesai))
+    jadwal_bentrok_dosen = cursor.fetchall()
 
-        if jadwal_bentrok_dosen:
-            print("\nWaktu yang Anda pilih di luar jadwal dosen!")
-            continue
-        else:
-            break
+    if jadwal_bentrok_dosen:
+        print("\nWaktu yang Anda pilih di luar jadwal dosen!")
+        print(f"\n===== Berikut jadwal dosen pada hari {hari.capitalize()} =====")
+        for jadwal in jadwal_bentrok_dosen:
+            print(f"Dosen: {jadwal[0]}, Hari: {jadwal[1]}, Jam: {jadwal[2]} - {jadwal[3]}")
+        continue
+    else:
+        break
+
 
     # Validasi bentrok waktu kelas
     query = """
@@ -595,7 +603,7 @@ def tampilkan_kelas():
 
         if results:
             table = PrettyTable()
-            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Hari", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
         
             for row in results:
                 table.add_row([ 
@@ -604,11 +612,12 @@ def tampilkan_kelas():
                     row[2],  # Kode Mata Kuliah
                     row[3],  # NIP Dosen
                     row[4],  # Dosen yang Mengajar
-                    row[5],  # Waktu Mulai
-                    row[6],  # Waktu Selesai
-                    row[7],  # Informasi Kelas
-                    row[8],  # Status
-                    row[9],  # Pengguna
+                    row[5],  # Hari
+                    row[6],  # Waktu Mulai
+                    row[7],  # Waktu Selesai
+                    row[8],  # Informasi Kelas
+                    row[9],  # Status
+                    row[10],  # Pengguna
                 ])
         
             print("\n=== List Kelas ===")

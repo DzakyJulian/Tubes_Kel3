@@ -449,7 +449,7 @@ def edit_kelas():
         kelas_id = input("\nMasukkan ID Kelas yang akan diedit: ").strip()
 
         # Mengambil data kelas berdasarkan ID
-        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, nip_dosen, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas WHERE id_detail_kelas = %s"
+        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, nip_dosen, hari, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas WHERE id_detail_kelas = %s"
         cursor.execute(query, (kelas_id,))
         kelas = cursor.fetchone()
 
@@ -458,25 +458,26 @@ def edit_kelas():
             return
 
         print("\nData Kelas yang Dipilih:")
-        print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nNIP Dosen: {kelas[3]}\nJam: {kelas[4]} - {kelas[5]}\nPengguna: {kelas[6]}\nStatus: {kelas[7]}")
+        print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nNIP Dosen: {kelas[3]}\n Hari: {kelas[4]}\nJam: {kelas[5]} - {kelas[6]}\nPengguna: {kelas[7]}\nStatus: {kelas[8]}")
 
         # Mengedit data kelas
         print("\nMasukkan data baru (kosongkan jika tidak ingin mengubah):")
         kode_kelas_baru = input("Kode Kelas baru: ").strip() or kelas[1]
         kode_matkul_baru = input("Kode Mata Kuliah baru: ").strip() or kelas[2]
         nip_dosen_baru = input("NIP Dosen baru: ").strip() or kelas[3]
-        jam_mulai_baru = input("Jam Mulai baru (HH:MM): ").strip() or kelas[4]
-        jam_selesai_baru = input("Jam Selesai baru (HH:MM): ").strip() or kelas[5]
-        pengguna_baru = input("Pengguna baru: ").strip() or kelas[6]
-        status_baru = input("Status baru (kosongkan untuk tetap 'Digunakan'): ").strip() or kelas[7]
+        hari_baru = input("Hari baru: ").strip() or kelas[4]
+        jam_mulai_baru = input("Jam Mulai baru (HH:MM): ").strip() or kelas[5]
+        jam_selesai_baru = input("Jam Selesai baru (HH:MM): ").strip() or kelas[6]
+        pengguna_baru = input("Pengguna baru: ").strip() or kelas[7]
+        status_baru = input("Status baru (kosongkan untuk tetap 'Digunakan'): ").strip() or kelas[8]
 
         # Update data kelas di database
         query = """
             UPDATE detail_kelas
-            SET kode_kelas = %s, kode_matkul = %s, nip_dosen = %s, jam_mulai = %s, jam_selesai = %s, pengguna = %s, status = %s
+            SET kode_kelas = %s, kode_matkul = %s, nip_dosen = %s, hari = %s, jam_mulai = %s, jam_selesai = %s, pengguna = %s, status = %s
             WHERE id_detail_kelas = %s
         """
-        cursor.execute(query, (kode_kelas_baru, kode_matkul_baru, nip_dosen_baru, jam_mulai_baru, jam_selesai_baru, pengguna_baru, status_baru, kelas_id))
+        cursor.execute(query, (kode_kelas_baru.upper(), kode_matkul_baru.upper(), nip_dosen_baru, hari_baru.capitalize(), jam_mulai_baru, jam_selesai_baru, pengguna_baru.upper(), status_baru, kelas_id))
         conn.commit()
         print("Data kelas berhasil diperbarui.")
 
@@ -488,7 +489,7 @@ def tampilkan_kelas():
     try:
         cursor = conn.cursor()
         query = '''
-        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, dosen.nama, detail_kelas.jam_mulai, 
+        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, dosen.nama, detail_kelas.hari, detail_kelas.jam_mulai, 
         detail_kelas.jam_selesai, detail_kelas.informasi_kelas, detail_kelas.status, detail_kelas.pengguna FROM detail_kelas INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
         ORDER BY kode_kelas ASC
         '''
@@ -504,10 +505,10 @@ def tampilkan_kelas():
                 print(f"Kode Mata Kuliah     : {row[2]}")
                 print(f"NIP Dosen            : {row[3]}")
                 print(f"Dosen yang mengajar  : {row[4]}")
-                print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
-                print(f"Informasi Kelas      : {row[7]}")
-                print(f"Status               : {row[8]}")
-                print(f"Pengguna             : {row[9]}")
+                print(f"Waktu Penggunaan     : {row[5]}, {row[6]} - {row[7]}")
+                print(f"Informasi Kelas      : {row[8]}")
+                print(f"Status               : {row[9]}")
+                print(f"Pengguna             : {row[10]}")
                 print("-" * 40)
         else:
             print("Tidak ada data di tabel detail_kelas.")

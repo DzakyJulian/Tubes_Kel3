@@ -802,3 +802,107 @@ def proses_pembatalan_kelas_admin():
 
     finally:
         cursor.close()
+
+def proses_pengajuan_manual():
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan WHERE status_pengajuan = 'Pending'
+        """)
+        pengajuan = cursor.fetchall()
+
+        if not pengajuan:
+            print("Tidak ada pengajuan yang perlu diproses.")
+            return
+        
+        # Daftar pengajuan yang perlu diproses
+        print("\n===== Daftar Pengajuan yang Perlu Diproses =====")
+        for data in pengajuan:
+            print("="*40)
+            print(f"ID Pengajuan       : {data[0]}")
+            print(f"Diajukan oleh      : {data[1]}")
+            print(f"Kode Kelas         : {data[2]}")
+            print(f"Kode Mata Kuliah   : {data[3]}")
+            print(f"Kode Dosen         : {data[4]}")
+            print(f"Dosen              : {data[5]}")
+            print(f"Waktu Penggunaan   : {data[6]}, {data[7]} - {data[8]}")
+            print(f"Tanggal Pengajuan  : {data[9]}")
+            print(f"Status Pengajuan   : {data[10]}")
+            print("="*40)
+
+        id_pengajuan = int(input("\nMasukkan ID pengajuan yang ingin diproses: "))
+
+        cursor.execute("""
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan WHERE id_pengajuan = %s
+        """, (id_pengajuan,))
+        detail = cursor.fetchone()
+
+        if not detail:
+            print("Tidak ada pengajuan yang perlu diproses.")
+            return
+        
+        # Daftar pengajuan yang perlu diproses
+        print(f"\n===== Detail Pengajuan ID {id_pengajuan} =====")
+        print("="*40)
+        print(f"ID Pengajuan       : {detail[0]}")
+        print(f"Diajukan oleh      : {detail[1]}")
+        print(f"Kode Kelas         : {detail[2]}")
+        print(f"Kode Mata Kuliah   : {detail[3]}")
+        print(f"Kode Dosen         : {detail[4]}")
+        print(f"Dosen              : {detail[5]}")
+        print(f"Waktu Penggunaan   : {detail[6]}, {detail[7]} - {detail[8]}")
+        print(f"Tanggal Pengajuan  : {detail[9]}")
+        print(f"Status Pengajuan   : {detail[10]}")
+        print("="*40)
+
+        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+
+        if keputusan.upper() not in ['Y', 'N']:
+            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            return
+        
+        status_pengajuan = 'ACC' if keputusan.upper() == 'Y' else 'Ditolak'
+
+        # Update status pengajuan berdasarkan keputusan
+        cursor.execute(
+            "UPDATE pengajuan SET status_pengajuan = %s WHERE id_pengajuan = %s",
+            (status_pengajuan, id_pengajuan),
+        )
+        conn.commit()
+        print(f"Pengajuan ID {id_pengajuan} telah diproses.")
+
+        if status_pengajuan == 'ACC':
+
+            cursor.execute("""
+                SELECT kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 
+                    nip_dosen, informasi_kelas, pengguna   
+                FROM pengajuan WHERE id_pengajuan = %s
+            """, (id_pengajuan,))
+            data = cursor.fetchone()
+
+            kode_kelas = data[0]
+            kode_matkul = data[1]
+            hari = data[2]
+            jam_mulai = data[3]
+            jam_selesai = data[4]
+            kode_dosen = data[5]
+            informasiKelas = data[6]
+            pengguna = data[7]
+
+            cursor.execute("""
+                INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 
+                    nip_dosen, informasi_kelas, pengguna, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'Digunakan')
+            """, (kode_kelas,kode_matkul,hari,jam_mulai,jam_selesai,kode_dosen,informasiKelas,pengguna,))
+            conn.commit()
+            print("Data berhasil disimpan.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+
+    finally:
+        cursor.close()

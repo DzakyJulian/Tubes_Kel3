@@ -249,3 +249,35 @@ def lihat_pesanan_saya(NIM):
     finally:
         cursor.close()
 
+def pengajuan():
+    cursor = conn.cursor()
+
+    print("======= Pengajuan Pemakaian Kelas =======")
+    pengguna = input("Diajukan oleh: ").strip()
+    kode_kelas = input("Masukkan kode kelas: ").strip()
+    nip_dosen = input("Masukkan NIP dosen: ").strip()
+    kode_matkul = input("Masukkan kode matkul: ").strip()
+    hari = input("Masukkan hari: ").strip()
+    jam_mulai = input("Masukkan jam mulai: ").strip()
+    jam_selesai = input("Masukkan jam selesai: ").strip()
+    
+    cursor.execute("SELECT informasi_kelas FROM kelas WHERE kode_kelas = %s", (kode_kelas,))
+    results = cursor.fetchone()
+
+    infoKelas = results[0]
+
+    cursor.execute("SELECT nama FROM dosen WHERE nip = %s", (nip_dosen,))
+    nama = cursor.fetchone()
+
+    nama_dosen = nama[0]
+
+
+    cursor.execute("""INSERT INTO pengajuan (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, 
+                    jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')""", 
+                   (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
+    conn.commit()
+
+    print("Data pengajuan dikirim ke Akademik. Silahkan tunggu konfirmasi dari Akademik.")
+
+    

@@ -683,7 +683,6 @@ def proses_pembatalan_kelas_admin():
         # Tampilkan daftar pengajuan pembatalan kelas
         print("===== Daftar pengajuan pembatalan kelas =====")
         for pembatalan in daftar_pembatalan:
-            print("\n")
             print("="*40)
             print(f"ID Transaksi      : {pembatalan[0]}")
             print(f"ID Kelas          : {pembatalan[1]}")
@@ -726,8 +725,13 @@ def proses_pembatalan_kelas_admin():
 
      
 
-        # Input keputusan dari admin
+        # Input keputusan dan alasannya dari admin
         keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+        komentar = str(input("Alasan di ACC atau ditolak: ")).strip()
+
+        # kosongin kalau ga ada komentar
+        if len(komentar) <= 0:
+            komentar = "Tidak ada"
 
         #Validasi keputusan
         if keputusan.upper() not in ['Y', 'N']:
@@ -738,7 +742,7 @@ def proses_pembatalan_kelas_admin():
         status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
 
         # Update status pembatalan berdasarkan keputusan admin
-        cursor.execute("UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s", (status, id_transaksi))
+        cursor.execute("UPDATE transaksi SET status_transaksi = %s, komentar = %s WHERE id_transaksi = %s", (status, komentar, id_transaksi))
         conn.commit()
 
         print(f"Pembatalan dengan ID {id_transaksi} telah diproses dan statusnya di ubah menjadi '{status}'.")

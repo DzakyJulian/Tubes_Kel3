@@ -44,9 +44,8 @@ def ajukan_kelas(nim, email):
             print(f"Status               : {row[8]}")
             print("-" * 40)
 
-        pengguna = input("\nSiapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C): ").strip()
-        
-        id_detail_kelas = input("\nMasukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
+        pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C): ").strip()
+        id_detail_kelas = input("Masukkan ID Detail Kelas yang ingin diajukan (bukan kode kelas): ").strip()
 
         cursor.execute('''
         SELECT jam_mulai, jam_selesai, pengguna FROM detail_kelas WHERE id_detail_kelas = %s
@@ -209,7 +208,7 @@ def lihat_pesanan_saya(NIM):
         cursor.execute(f"""
                 SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
                        detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
-                       transaksi.pengguna, transaksi.status_transaksi 
+                       transaksi.pengguna, transaksi.status_transaksi, transaksi.komentar
                 FROM transaksi 
                        INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
                 """)
@@ -228,6 +227,7 @@ def lihat_pesanan_saya(NIM):
                 print(f"Tanggal Transaksi    : {i[7]}")
                 print(f"Diajukan untuk kelas : {i[8]}")
                 print(f"Status Transaksi     : {i[9]}")
+                print(f"Komentar             : {i[10] if i[10] != None else "Tidak ada"}")
                 print("=============================================")
 
     except mysql.connector.Error as err:

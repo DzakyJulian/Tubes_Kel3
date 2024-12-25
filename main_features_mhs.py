@@ -74,7 +74,7 @@ def ajukan_kelas(nim, email):
                         cursor.execute(''' 
                         INSERT INTO transaksi (nim, id_detail_kelas, email, tanggal_transaksi, status_transaksi, pengguna)
                         VALUES (%s, %s, %s, NOW(), 'Pengajuan Pending', %s)
-                        ''', (nim, id_detail_kelas, email, pengguna))
+                        ''', (nim, id_detail_kelas, email, pengguna.upper()))
                         conn.commit()
 
                         print("Pemesanan kelas berhasil. Pengajuan kelas akan ditujukan kepada akademik.")
@@ -134,7 +134,7 @@ def batal_kelas(nim):
                     transaksi.pengguna, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
-            WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pengajuan Pending'
+            WHERE transaksi.nim = %s AND transaksi.status_transaksi = 'Pengajuan Pending' OR transaksi.status_transaksi = 'ACC Pengajuan'
         ''', (nim,))
         result = cursor.fetchall()
 
@@ -163,6 +163,7 @@ def batal_kelas(nim):
             SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s
         ''', (id_transaksi, nim))
         transaksi_terpilih = cursor.fetchone()
+        status_transaksi_terpilih = transaksi_terpilih[5]
 
         if transaksi_terpilih is None:
             print("ID Transaksi tidak ditemukan.")
@@ -171,14 +172,27 @@ def batal_kelas(nim):
         # Proses konfirmasi pembatalan
         confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N): ")
         if confirmation.lower() == 'y':
-            # Update status transaksi menjadi 'Cancelled'
-            cursor.execute('''
-                UPDATE transaksi
-                SET status_transaksi = 'Pengajuan Dibatalkan'
-                WHERE id_transaksi = %s
-            ''', (id_transaksi,))
-            conn.commit()
-            print("Pesanan kelas berhasil dibatalkan.")
+
+            if status_transaksi_terpilih == "Pengajuan Pending":
+                # Jika pesanan berstatus 'Pengajuan Pending', langsung batalkan
+                cursor.execute('''
+                UPDATE transaksi SET status_transaksi = 'Pengajuan Dibatalkan' WHERE id_transaksi = %s AND nim = %s
+                ''', (id_transaksi, nim))
+                conn.commit()
+                print(f"Pesanan dengan ID {id_transaksi} berhasil dibatalkan.")
+                return
+
+            if status_transaksi_terpilih == "ACC Pengajuan":
+                # Jika sudah di-ACC, ubah status menjadi 'Pembatalan Pending'
+                cursor.execute('''
+                UPDATE transaksi SET status_transaksi = 'Pembatalan Pending' WHERE id_transaksi = %s AND nim = %s
+                ''', (id_transaksi, nim))
+                conn.commit()
+                print(f"Pengajuan pembatalan untuk ID {id_transaksi} berhasil diajukan. Menunggu konfirmasi admin.")
+            else:
+                print(f"Pesanan dengan ID {id_transaksi} tidak ditemukan atau tidak dapat dibatalkan. Status saat ini: {status_transaksi_terpilih}.")
+                return
+            
         elif confirmation.lower() == 'n':
             print("Pembatalan dibatalkan.")
         else:

@@ -63,7 +63,7 @@ def create_table():
             id_detail_kelas INT AUTO_INCREMENT PRIMARY KEY,
             kode_kelas VARCHAR(30),
             kode_matkul VARCHAR(10),
-            waktu_penggunaan DATETIME NOT NULL,
+            hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat') NOT NULL,
             jam_mulai TIME NOT NULL,
             jam_selesai TIME NOT NULL,
             nip_dosen INT(20) NOT NULL,
@@ -83,7 +83,8 @@ def create_table():
             nim INT(20) NOT NULL,
             email VARCHAR(255) NOT NULL,
             tanggal_transaksi DATETIME NOT NULL,
-            status_transaksi ENUM('Berhasil','Gagal', 'Pending') NOT NULL,
+            status_transaksi ENUM('ACC Pengajuan','ACC Pembatalan', 'Pengajuan Ditolak', 'Pembatalan Ditolak', 'Pengajuan Pending', 'Pembatalan Pending', 'Pengajuan Dibatalkan') NOT NULL,
+            pengguna VARCHAR(30) NOT NULL,
             komentar VARCHAR(255),
             FOREIGN KEY (nim) REFERENCES users(nim),
             FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)

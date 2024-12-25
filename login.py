@@ -6,6 +6,7 @@ from admin_db_info import get_current_mysql_password
 from main_features_admin import add_mata_kuliah, view_dosen, view_datakelas, input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen, tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas
 from main_features_mhs import ajukan_kelas
 from register import register_user
+from prettytable import PrettyTable
 
 # Koneksi ke database MySQL
 conn = mysql.connector.connect(
@@ -21,9 +22,11 @@ def login():
     
     while attempts < 3:  # Memberikan 3 kali kesempatan login
         # Pilihan untuk login sebagai admin atau mahasiswa
-        print("\n=== Pilih Peran untuk Login ===")
-        print("1. Login sebagai Mahasiswa")
-        print("2. Login sebagai Admin")
+        table = PrettyTable()
+        table.field_names = ["No", "Pilih Peran Untuk Login"]
+        table.add_row([1, "Login Sebagai Mahasiswa"])
+        table.add_row([2, "Login Sebagai Admin"])
+        print(table)
         role_choice = input("Masukkan pilihan (1/2): ").strip()
 
         if role_choice == '1':

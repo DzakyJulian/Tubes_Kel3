@@ -515,7 +515,7 @@ def tampilkan_kelas():
                     row[5],  # Waktu Mulai
                     row[6],  # Waktu Selesai
                     row[7],  # Informasi Kelas
-                    row[8]   # Status
+                    row[8],  # Status
                     row[9],  # Pengguna
                 ])
         

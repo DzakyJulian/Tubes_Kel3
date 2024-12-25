@@ -29,8 +29,6 @@ def login_main():
     else:
         print("Pilihan tidak valid! Silakan pilih 1 untuk Mahasiswa atau 2 untuk Admin.")
 
-    print("Login gagal setelah 3 kali percobaan.")
-
 # FUNGSI BIAR ATTEMPT LOGIN NYA BEDA DI MASING2 ROLE
 def login_by_role(role):
     from main_menu import admin_menu, mahasiswa_menu
@@ -67,14 +65,10 @@ def login_by_role(role):
                     # Menjaga koneksi tetap terbuka dan mengarahkan ke menu yang tepat
                     if role == 'mahasiswa':
                         print("Masuk ke menu mahasiswa...")
-                        cursor.close()
-                        conn.close()
                         mahasiswa_menu(nim, email)  # Memanggil mahasiswa_menu dengan nim dan email
                         return  # Keluar dari login setelah berhasil masuk ke menu mahasiswa
                     else:
                         print("Masuk ke menu admin...")
-                        cursor.close()
-                        conn.close()
                         admin_menu()  # Panggil fungsi admin_menu() atau yang sesuai jika login sebagai admin
                         return  # Keluar dari login setelah berhasil masuk ke menu admin
                 else:

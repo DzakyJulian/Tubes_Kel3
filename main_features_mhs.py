@@ -220,19 +220,27 @@ def lihat_pesanan_saya(NIM):
         if len(result) == 0:  # Jika tidak ada data
             print("Anda belum memiliki pesanan kelas.")
         else:
-            print("\n============== Pesanan Saya =================")
+            print("\n[ Pesanan Saya ]")
             table = PrettyTable()
-            table.field_names = ["ID Pesanan", "ID Detail Kelas", "Kode Kelas", "Jam Mulai", "Jam Selesai", "Tanggal Transaksi", "Status Transaksi"]
+            table.field_names = [
+                "ID Pesanan",
+                "ID Detail Kelas", 
+                "Kode Kelas", 
+                "Jam Mulai", 
+                "Jam Selesai", 
+                "Tanggal Transaksi", 
+                "Status Transaksi",
+            ]
             
             for i in result:
                 table.add_row([
                     i[0],  # ID Pesanan
                     i[1],  # ID Detail Kelas
-                    i[8],  # Kode Kelas
-                    i[11], # Jam Mulai
-                    i[12], # Jam Selesai
-                    i[4],  # Tanggal Transaksi
-                    i[5]   # Status Transaksi
+                    i[2],  # Kode Kelas
+                    i[5], # Jam Mulai
+                    i[6], # Jam Selesai
+                    i[7],  # Tanggal Transaksi
+                    i[9]   # Status Transaksi
                 ])
             print(table)
                 

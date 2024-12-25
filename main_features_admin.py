@@ -370,25 +370,25 @@ def buat_kelas():
             jam_mulai = input("Masukkan Jam Mulai (HH:MM, contoh: 08:00): ").strip()
             jam_selesai = input("Masukkan Jam Selesai (HH:MM, contoh: 10:00): ").strip()
 
-            # Validasi format jam
             try:
-                jam_mulai = datetime.strptime(jam_mulai, "%H:%M").strftime("%H:%M")
-                jam_selesai = datetime.strptime(jam_selesai, "%H:%M").strftime("%H:%M")
+                jam_mulai_dt = datetime.strptime(jam_mulai, "%H:%M")
+                jam_selesai_dt = datetime.strptime(jam_selesai, "%H:%M")
             except ValueError:
                 print("Format jam salah! Gunakan format HH:MM.")
+                continue
+
+                # Validasi logis: jam mulai harus lebih kecil dari jam selesai
+            if jam_mulai_dt >= jam_selesai_dt:
+                print("Jam mulai harus lebih kecil dari jam selesai. Silakan masukkan ulang.")
                 continue
 
             # Validasi jadwal dosen dengan menggunakan BETWEEN
             query_dosen = """
                 SELECT nip, hari, jam_mulai, jam_selesai
                 FROM jadwal_dosen
-                WHERE nip = %s AND hari = %s
-                AND (
-                    (%s BETWEEN jam_mulai AND jam_selesai)
-                    OR (%s BETWEEN jam_mulai AND jam_selesai)
-                )
+                WHERE nip = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
             """
-            cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai, jam_selesai))
+            cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
             jadwal_bentrok_dosen = cursor.fetchall()
 
             if jadwal_bentrok_dosen:
@@ -503,7 +503,7 @@ def tampilkan_kelas():
 
         if results:
             table = PrettyTable()
-            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Hari", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
         
             for row in results:
                 table.add_row([ 
@@ -512,11 +512,12 @@ def tampilkan_kelas():
                     row[2],  # Kode Mata Kuliah
                     row[3],  # NIP Dosen
                     row[4],  # Dosen yang Mengajar
-                    row[5],  # Waktu Mulai
-                    row[6],  # Waktu Selesai
-                    row[7],  # Informasi Kelas
-                    row[8],  # Status
-                    row[9],  # Pengguna
+                    row[5],  # Hari
+                    row[6],  # Waktu Mulai
+                    row[7],  # Waktu Selesai
+                    row[8],  # Informasi Kelas
+                    row[9],  # Status
+                    row[10],  # Pengguna
                 ])
         
             print("\n=== List Kelas ===")

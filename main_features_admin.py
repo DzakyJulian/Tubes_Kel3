@@ -1,6 +1,7 @@
 import mysql.connector
 from admin_db_info import get_current_mysql_password
 from enum import Enum
+from prettytable import PrettyTable
 
 # Koneksi ke database
 conn = mysql.connector.connect(
@@ -122,17 +123,15 @@ def view_dosen():
         cursor.execute("SELECT * FROM dosen")
         dosens = cursor.fetchall()
         if dosens:
-            print("\n=== Data Dosen ===")
+            table = PrettyTable()
+            table.field_names = ["NIP", "Nama", "Alamat", "Email", "No. Telp"]
+
             for dosen in dosens:
-                print(f"""
-                NIP        : {dosen[0]}
-                Nama       : {dosen[1]}
-                Alamat     : {dosen[2]}
-                Email      : {dosen[3]}
-                No. Telp   : {dosen[4]}
-                """)
+                table.add_row([dosen[0], dosen[1], dosen[2], dosen[3], dosen[4]])
+            print(table)
         else:
             print("Tidak ada data dosen.")
+            
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan saat mengambil data dosen: {err}")
     finally:
@@ -164,10 +163,13 @@ def view_jadwal_dosen():
     cursor = conn.cursor()
     try:
         while True:
-            print("\n=== Lihat Jadwal Kosong Dosen ===")
-            print("1. Lihat semua jadwal dosen")
-            print("2. Lihat jadwal berdasarkan NIP")
-            print("3. Kembali ke menu utama")
+            table = PrettyTable()
+            table.field_names = ["No", "Lihat Jadwal Kosong Dosen"]
+            table.add_row([1, "Lihat semua jadwal dosen"])
+            table.add_row([2, "Lihat jadwal berdasarkan NIP"])
+            table.add_row([3, "Kembali ke menu utama"])
+            print(table)
+             
             choice = input("Pilih menu: ").strip()
 
             if choice == "1":  # Lihat semua jadwal dosen
@@ -181,16 +183,19 @@ def view_jadwal_dosen():
 
                 if jadwal:
                     print("\n=== Jadwal Kosong Seluruh Dosen ===")
+                    table = PrettyTable()
+                    table.field_names = ["NIP Dosen", "Nama Dosen", "Hari", "Jam Mulai", "Jam Selesai"]
+
                     for j in jadwal:
-                        print(f"""
-                        =====================
-                        NIP Dosen   : {j[0]}
-                        Nama Dosen  : {j[1]}
-                        Hari        : {j[2]}
-                        Jam Mulai   : {j[3]}
-                        Jam Selesai : {j[4]}
-                        =====================
-                        """)
+                        table.add_row([ 
+                            j[0],  # NIP Dosen
+                            j[1],  # Nama Dosen
+                            j[2],  # Hari
+                            j[3],  # Jam Mulai
+                            j[4]   # Jam Selesai
+                        ])
+                    print(table)    
+                        
                 else:
                     print("Tidak ada jadwal kosong dosen.")
 
@@ -212,12 +217,16 @@ def view_jadwal_dosen():
 
                     if jadwal_dosen:
                         print(f"\n=== Jadwal Kosong untuk Dosen NIP {nip} ({nama_dosen}) ===")
+                        table = PrettyTable()
+                        table.field_names = ["Hari", "Jam Mulai", "Jam Selesai"]
                         for j in jadwal_dosen:
-                            print(f"""
-                            Hari        : {j[0]}
-                            Jam Mulai   : {j[1]}
-                            Jam Selesai : {j[2]}
-                            """)
+                            table.add_row([
+                                j[0],  # Hari
+                                j[1],  # Jam Mulai
+                                j[2]   # Jam Selesai
+                            ])
+                        print(table)    
+                           
                     else:
                         print(f"Tidak ada jadwal kosong untuk dosen dengan NIP {nip} ({nama_dosen}).")
                 else:
@@ -494,21 +503,28 @@ def tampilkan_kelas():
         '''
         cursor.execute(query)
         results = cursor.fetchall()
-        print("\n---List Kelas---")
+
         if results:
+            table = PrettyTable()
+            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+        
             for row in results:
-                
-                print("-" * 40)
-                print(f"ID Detail Kelas      : {row[0]}")
-                print(f"Kode Kelas           : {row[1]}")
-                print(f"Kode Mata Kuliah     : {row[2]}")
-                print(f"NIP Dosen            : {row[3]}")
-                print(f"Dosen yang mengajar  : {row[4]}")
-                print(f"Waktu Penggunaan     : {row[5]} - {row[6]}")
-                print(f"Informasi Kelas      : {row[7]}")
-                print(f"Pengguna             : {row[9]}")
-                print(f"Status               : {row[8]}")
-                print("-" * 40)
+                table.add_row([ 
+                    row[0],  # ID Detail Kelas
+                    row[1],  # Kode Kelas
+                    row[2],  # Kode Mata Kuliah
+                    row[3],  # NIP Dosen
+                    row[4],  # Dosen yang Mengajar
+                    row[5],  # Waktu Mulai
+                    row[6],  # Waktu Selesai
+                    row[7],  # Informasi Kelas
+                    row[9],  # Pengguna
+                    row[8]   # Status
+                ])
+        
+            print("\n=== List Kelas ===")
+            print(table)
+            
         else:
             print("Tidak ada data di tabel detail_kelas.")
 
@@ -547,17 +563,26 @@ def proses_pengajuan_kelas():
 
         # Tampilkan daftar pengajuan
         print("Daftar Pengajuan:")
-        for pengajuan in daftar_pengajuan:
-            print("\n")
-            print("="*40)
-            print(f"ID Transaksi      : {pengajuan[0]}")
-            print(f"ID Kelas          : {pengajuan[1]}")
-            print(f"NIM               : {pengajuan[2]}")
-            print(f"Email             : {pengajuan[3]}")
-            print(f"Tanggal Pengajuan : {pengajuan[4]}")
-            print(f"Status Saat Ini   : {pengajuan[5]}")
-            print("="*40)
 
+        if daftar_pengajuan:  # Jika ada data pengajuan
+            print("\n=== Daftar Pengajuan ===")
+            table = PrettyTable()
+            table.field_names = ["ID Transaksi", "ID Kelas", "NIM", "Email", "Tanggal Pengajuan", "Status Saat Ini"]
+        
+            for pengajuan in daftar_pengajuan:
+                table.add_row([
+                    pengajuan[0],  # ID Transaksi
+                    pengajuan[1],  # ID Kelas
+                    pengajuan[2],  # NIM
+                    pengajuan[3],  # Email
+                    pengajuan[4],  # Tanggal Pengajuan
+                    pengajuan[5]   # Status Saat Ini
+                ])
+        
+            print(table)
+        else:
+            print("Tidak ada pengajuan yang ditemukan.")
+    
         # Input ID pengajuan yang akan diproses
         id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
 
@@ -568,15 +593,18 @@ def proses_pengajuan_kelas():
         if pesanan is None:
             print("ID Pengajuan tidak ditemukan.")
             return
+        
+        table = PrettyTable()
+        table.field_names = ["Detail", "Value"]
+        table.add_row(["ID Transaksi", pesanan[0]])
+        table.add_row(["ID Kelas", pesanan[1]])
+        table.add_row(["NIM", pesanan[2]])
+        table.add_row(["Email", pesanan[3]])
+        table.add_row(["Tanggal Pengajuan", pesanan[4]])
+        table.add_row(["Status Saat Ini", pesanan[5]])
 
-        # Tampilkan detail pengajuan
         print("\nDetail Pengajuan:")
-        print(f"ID Transaksi      : {pesanan[0]}")
-        print(f"ID Kelas          : {pesanan[1]}")
-        print(f"NIM               : {pesanan[2]}")
-        print(f"Email             : {pesanan[3]}")
-        print(f"Tanggal Pengajuan : {pesanan[4]}")
-        print(f"Status Saat Ini   : {pesanan[5]}")
+        print(table)
 
         # Input keputusan dari admin
         keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
@@ -623,16 +651,28 @@ def proses_pembatalan_kelas_admin():
         
         # Tampilkan daftar pengajuan pembatalan kelas
         print("Daftar pengajuan pembatalan kelas: ")
-        for pembatalan in daftar_pembatalan:
-            print("\n")
-            print("="*40)
-            print(f"ID Transaksi      : {pembatalan[0]}")
-            print(f"ID Kelas          : {pembatalan[1]}")
-            print(f"NIM               : {pembatalan[2]}")
-            print(f"Email             : {pembatalan[3]}")
-            print(f"Tanggal Pengajuan : {pembatalan[4]}")
-            print(f"Status Saat Ini   : {pembatalan[5]}")
-            print("="*40)
+        
+        # Cek apakah ada data 
+        if daftar_pembatalan:
+            print("\n=== Daftar Pembatalan ===")
+            table = PrettyTable()
+            table.field_names = ["ID Transaksi", "ID Kelas", "NIM", "Email", "Tanggal Pengajuan", "Status Saat Ini"]
+    
+            # Menambahkan data ke tabel
+            for pembatalan in daftar_pembatalan:
+                table.add_row([
+                    pembatalan[0],  # ID Transaksi
+                    pembatalan[1],  # ID Kelas
+                    pembatalan[2],  # NIM
+                    pembatalan[3],  # Email
+                    pembatalan[4],  # Tanggal Pengajuan
+                    pembatalan[5]   # Status Saat Ini
+                ])
+    
+             # Menampilkan tabel
+            print(table)
+        else:
+            print("Tidak ada pembatalan yang ditemukan.")
 
             # Input ID pengajuan pembatalan yang akan diproses
             id_pembatalan = input("Masukkan ID Pembatalan yang akan diproses: ").strip()
@@ -643,17 +683,23 @@ def proses_pembatalan_kelas_admin():
          
         if pembatalan is None or pembatalan[5] != StatusTransaksi.PEMBATALAN_PENDING.value:
             print("ID Pembatalan tidak valid atau status tidak sesuai.")
-            return
+            return  
 
         # Tampilkan detail pengajuan pembatalan kelas
+        table = PrettyTable()
+        table.field_names = ["Detail", "Value"]
+
+        # Menambahkan data pembatalan ke tabel
+        table.add_row(["ID Transaksi", pembatalan[0]])
+        table.add_row(["ID Kelas", pembatalan[1]])
+        table.add_row(["NIM", pembatalan[2]])
+        table.add_row(["Email", pembatalan[3]])
+        table.add_row(["Tanggal Pengajuan", pembatalan[4]])
+        table.add_row(["Status Saat Ini", pembatalan[5]])
+
+       # Menampilkan tabel
         print("\nDetail Pembatalan:")
-        print(f"ID Transaksi      : {pembatalan[0]}")
-        print(f"ID Kelas          : {pembatalan[1]}")
-        print(f"NIM               : {pembatalan[2]}")
-        print(f"Email             : {pembatalan[3]}")
-        print(f"Tanggal Pengajuan : {pembatalan[4]}")
-        print(f"Status Saat Ini   : {pembatalan[5]}")
-     
+        print(table)
 
         # Input keputusan dari admin
         keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()

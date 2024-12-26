@@ -216,5 +216,121 @@ def batal_kelas(nim):
             print("Input tidak valid.")
     except mysql.connector.Error as err:
         print(f"Error: Terjadi kesalahan saat mengambil data transaksi. {err}")
+        
+def pengajuan():
+    cursor = conn.cursor()
+
+    print("======= Pengajuan Pemakaian Kelas =======")
+
+    while True:
+        pengguna = input("Diajukan oleh(0 untuk kembali): ").strip()
+        if pengguna.lower() == "0":
+            print("Kembali ke menu utama.")
+            return
+
+        kode_kelas = input("Masukkan kode kelas(0 untuk kembali): ").strip()
+        if kode_kelas.lower() == "0":
+            print("Kembali.")
+            return
+
+        nip_dosen = input("Masukkan NIP dosen(0 untuk kembali): ").strip()
+        if nip_dosen.lower() == "0":
+            print("Kembali.")
+            return
+
+        kode_matkul = input("Masukkan kode matkul(0 untuk kembali): ").strip()
+        if kode_matkul.lower() == "0":
+            print("Kembali.")
+            return
+
+        hari = input("Masukkan hari(0 untuk kembali): ").strip()
+        if hari.lower() == "0":
+            print("Kembali.")
+            return
+
+        jam_mulai = input("Masukkan jam mulai(0 untuk kembali): ").strip()
+        if jam_mulai.lower() == "0":
+            print("Kembali.")
+            return
+
+        jam_selesai = input("Masukkan jam selesai(0 untuk kembali): ").strip()
+        if jam_selesai.lower() == "0":
+            print("Kembali.")
+            return
+
+        # Validasi kode kelas
+        cursor.execute("SELECT informasi_kelas FROM kelas WHERE kode_kelas = %s", (kode_kelas,))
+        results = cursor.fetchone()
+
+        if results is None:
+            print("Kode kelas tidak ditemukan. Silakan periksa kembali.")
+            continue
+
+        infoKelas = results[0]
+
+        # Validasi NIP dosen
+        cursor.execute("SELECT nama FROM dosen WHERE nip = %s", (nip_dosen,))
+        nama = cursor.fetchone()
+
+        if nama is None:
+            print("NIP dosen tidak ditemukan. Silakan periksa kembali.")
+            continue
+
+        nama_dosen = nama[0]
+
+        cursor.execute("""
+            INSERT INTO pengajuan (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
+        """, (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
+
+        conn.commit()
+
+        print("Data pengajuan dikirim ke Akademik. Silahkan tunggu konfirmasi dari pihak terkait.")
+        break
+
+
+
+    
+def lihat_pesanan_saya(NIM):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"""
+                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
+                       detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
+                       transaksi.pengguna, transaksi.status_transaksi, transaksi.komentar
+                FROM transaksi 
+                       INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
+                """)
+        result = cursor.fetchall()
+        
+        if len(result) == 0:  # Jika tidak ada data
+            print("Anda belum memiliki pesanan kelas.")
+        else:
+            print("\n[ Pesanan Saya ]")
+            table = PrettyTable()
+            table.field_names = [
+                "ID Pesanan",
+                "ID Detail Kelas", 
+                "Kode Kelas", 
+                "Jam Mulai", 
+                "Jam Selesai", 
+                "Tanggal Transaksi", 
+                "Status Transaksi",
+            ]
+            
+            for i in result:
+                table.add_row([
+                    i[0],  # ID Pesanan
+                    i[1],  # ID Detail Kelas
+                    i[2],  # Kode Kelas
+                    i[5], # Jam Mulai
+                    i[6], # Jam Selesai
+                    i[7],  # Tanggal Transaksi
+                    i[9]   # Status Transaksi
+                ])
+            print(table)
+                
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
     finally:
         cursor.close()

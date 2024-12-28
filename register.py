@@ -16,9 +16,27 @@ def valid_email(email):
 
 def register_user():
     print("\n=== Register Mahasiswa ===")
-    nim = input("Masukkan NIM: ").strip().lower()
-    email = input("Masukkan Email: ").strip().lower()
-    password = input("Masukkan Password: ").strip()
+    # Validasi NIM kosong
+    while True:
+            nim = input("Masukkan NIM: ").strip().lower()
+            if len(nim) <= 0:
+                print("NIM tidak boleh kosong")
+            else:
+                break
+    # Validasi Email kosong
+    while True:
+            email = input("Masukkan Email: ").strip().lower()
+            if len(email) <= 0:
+                print("Email tidak boleh kosong")
+            else:
+                break
+    # Validasi Password kosong
+    while True:
+            password = input("Masukkan Password: ").strip()
+            if len(password) <= 0:
+                print("Password tidak boleh kosong")
+            else:
+                break
     password_hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     role = "mahasiswa"
 
@@ -35,6 +53,3 @@ def register_user():
         print("Registrasi berhasil!")
     except mysql.connector.IntegrityError:
         print("Email atau NIM sudah digunakan!")
-    finally:
-        cursor.close()
-        conn.close()

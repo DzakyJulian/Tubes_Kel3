@@ -16,13 +16,14 @@ def valid_email(email):
 
 def register_user():
     print("\n=== Register Mahasiswa ===")
-    # Validasi NIM kosong
+    # advance validation for NIM
     while True:
-            nim = input("Masukkan NIM: ").strip().lower()
-            if len(nim) <= 0:
-                print("NIM tidak boleh kosong")
-            else:
-                break
+        try:
+            nim = int(input("Masukkan NIM: "))
+        except:
+            print("NIM harus angka, tidak boleh kosong, tidak boleh huruf atau simbol lainnya.")
+        else:
+            break
     # Validasi Email kosong
     while True:
             email = input("Masukkan Email: ").strip().lower()

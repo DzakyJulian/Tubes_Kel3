@@ -299,7 +299,7 @@ def pengajuan():
         nama_dosen = nama[0]
 
         cursor.execute("""
-            INSERT INTO pengajuan (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status)
+            INSERT INTO pengajuan (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
         """, (pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
 

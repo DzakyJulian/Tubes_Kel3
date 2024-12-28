@@ -89,6 +89,24 @@ def create_table():
             FOREIGN KEY (nim) REFERENCES users(nim),
             FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)
         )''')
+        
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pengajuan (
+            id_pengajuan INT(11) AUTO_INCREMENT PRIMARY KEY,
+            kode_kelas VARCHAR(30) NOT NULL,
+            kode_matkul VARCHAR(10) NOT NULL,
+            hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu') NOT NULL,
+            jam_mulai TIME NOT NULL,
+            jam_selesai TIME NOT NULL,
+            nip_dosen INT(20) NOT NULL,
+            nama_dosen VARCHAR(225) NOT NULL,
+            informasi_kelas TEXT,
+            pengguna VARCHAR(30) NOT NULL,
+            tgl_pengajuan TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+            status_pengajuan ENUM('ACC', 'DITOLAK', 'PENDING'),
+            FOREIGN KEY (nip_dosen) REFERENCES dosen(nip)
+        )
+        ''')
     
         print("Tabel-tabel berhasil dibuat.")
     

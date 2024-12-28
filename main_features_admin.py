@@ -781,9 +781,9 @@ def proses_pembatalan_kelas_admin():
         # Ambil semua pengajuan pembatalan yang berstatus "Pembatalan Pending"
         cursor.execute(
             """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, transaksi.nim, detail_kelas.kode_kelas, 
-                detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
-                transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
+                   detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
+                   detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
             WHERE transaksi.status_transaksi = %s
@@ -801,17 +801,22 @@ def proses_pembatalan_kelas_admin():
         if daftar_pembatalan:
             print("\n=== Daftar Pembatalan ===")
             table = PrettyTable()
-            table.field_names = ["ID Transaksi", "ID Kelas", "NIM", "Email", "Tanggal Pengajuan", "Status Saat Ini"]
+            table.field_names = ["ID Transaksi", "ID Kelas", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen","Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
     
             # Menambahkan data ke tabel
             for pembatalan in daftar_pembatalan:
                 table.add_row([
                     pembatalan[0],  # ID Transaksi
-                    pembatalan[1],  # ID Kelas
-                    pembatalan[2],  # NIM
-                    pembatalan[3],  # Email
-                    pembatalan[4],  # Tanggal Pengajuan
-                    pembatalan[5]   # Status Saat Ini
+                    pembatalan[1],  # ID Detail kelas
+                    pembatalan[8],  # Diajukan oleh
+                    pembatalan[2],  # Kode Kelas
+                    pembatalan[3],  # Kode Matkul
+                    pembatalan[4],  # NIP Dosen
+                    pembatalan[5],  # Hari
+                    pembatalan[6],  # Jam mulai
+                    pembatalan[7],  # Jam selesai
+                    pembatalan[9], # Tanggal pengajuan
+                    pembatalan[10] # Status saat ini
                 ])
     
              # Menampilkan tabel
@@ -825,9 +830,9 @@ def proses_pembatalan_kelas_admin():
         # Periksa apakah ID pembatalan valid
         cursor.execute(
             """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, transaksi.nim,
-                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
-                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
+                   detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
+                   detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
             WHERE transaksi.id_transaksi = %s
@@ -844,11 +849,16 @@ def proses_pembatalan_kelas_admin():
 
         # Menambahkan data pembatalan ke tabel
         table.add_row(["ID Transaksi", pembatalan[0]])
-        table.add_row(["ID Kelas", pembatalan[1]])
-        table.add_row(["NIM", pembatalan[2]])
-        table.add_row(["Email", pembatalan[3]])
-        table.add_row(["Tanggal Pengajuan", pembatalan[4]])
-        table.add_row(["Status Saat Ini", pembatalan[5]])
+        table.add_row(["ID Detail Kelas", pembatalan[1]])
+        table.add_row(["Diajukan oleh", pembatalan[8]])
+        table.add_row(["Kode Kelas", pembatalan[2]])
+        table.add_row(["Kode Mata Kuliah", pembatalan[3]])
+        table.add_row(["NIP Dosen", pembatalan[4]])
+        table.add_row(["Hari", pembatalan[5]])
+        table.add_row(["Jam Mulai", pembatalan[6]])
+        table.add_row(["Jam Selesai", pembatalan[7]])
+        table.add_row(["Tanggal Pengajuan", pembatalan[9]])
+        table.add_row(["Status Saat Ini", pembatalan[10]])
 
        # Menampilkan tabel
         print("\nDetail Pembatalan:")

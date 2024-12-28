@@ -18,8 +18,8 @@ def ajukan_kelas(nim, email):
     try:
         query = '''
         SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, 
-               dosen.nama, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
-               detail_kelas.status, detail_kelas.pengguna, detail_kelas.hari 
+               dosen.nama, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
+               detail_kelas.status, detail_kelas.pengguna
         FROM detail_kelas 
         INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
         WHERE detail_kelas.status = 'Tersedia'
@@ -37,12 +37,12 @@ def ajukan_kelas(nim, email):
         if results:
            print("\n=== Detail Kelas ===")
            table = PrettyTable()
-           table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+           table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Hari", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
            for row in results:
             table.add_row([ 
                 row[0], row[1], row[2], row[3], 
                 row[4], row[5], row[6], row[7], 
-                row[8], row[9]])
+                row[8], row[9], row[10]])
             print(table)
         else:
             print("Tidak ada Data Kelas ")    
@@ -287,16 +287,13 @@ def pengajuan():
 
         print("Data pengajuan dikirim ke Akademik. Silahkan tunggu konfirmasi dari pihak terkait.")
         break
-
-
-
     
 def lihat_pesanan_saya(NIM):
     cursor = conn.cursor()
     try:
         cursor.execute(f"""
-                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
-                       detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
+                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, 
+                       detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
                        transaksi.pengguna, transaksi.status_transaksi, transaksi.komentar
                 FROM transaksi 
                        INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
@@ -311,7 +308,10 @@ def lihat_pesanan_saya(NIM):
             table.field_names = [
                 "ID Pesanan",
                 "ID Detail Kelas", 
-                "Kode Kelas", 
+                "Kode Kelas",
+                "Kode Mata Kuliah"
+                "NIP Dosen",
+                "Hari", 
                 "Jam Mulai", 
                 "Jam Selesai", 
                 "Tanggal Transaksi", 
@@ -323,9 +323,12 @@ def lihat_pesanan_saya(NIM):
                     i[0],  # ID Pesanan
                     i[1],  # ID Detail Kelas
                     i[2],  # Kode Kelas
-                    i[5], # Jam Mulai
-                    i[6], # Jam Selesai
-                    i[7],  # Tanggal Transaksi
+                    i[3],  # Kode Matkul
+                    i[4],  # Kode Dosen
+                    i[5],  # Hari
+                    i[6],  # Jam Mulai
+                    i[7],  # Jam Selesai
+                    i[8],  # Tanggal Transaksi
                     i[9]   # Status Transaksi
                 ])
             print(table)

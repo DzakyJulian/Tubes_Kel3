@@ -49,12 +49,26 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
 
     while attempts < 3:
         print(f"\nAnda memilih untuk login sebagai {role.capitalize()}.")
-        nim = input("Masukkan NIM ('0' untuk kembali): ").lower()
+
+        # validasi input NIM yang kosong
+        while True:
+            nim = input("Masukkan NIM ('0' untuk kembali): ").lower()
+            if len(nim) <= 0:
+                print("NIM tidak boleh kosong")
+            else:
+                break
+
         if nim == '0':
             print("Kembali ke menu pilih peran...")
             return
 
-        password = input("Masukkan Password: ").strip()
+        # validasi input password yang kosong
+        while True:
+            password = input("Masukkan Password: ").strip()
+            if len(password) <= 0:
+                print("Password tidak boleh kosong")
+            else:
+                break
 
         # Normalisasi password
         password = unicodedata.normalize("NFKC", password).strip()

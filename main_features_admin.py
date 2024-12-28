@@ -701,13 +701,24 @@ def proses_pengajuan_kelas():
             return
         
         table = PrettyTable()
+        print(pesanan[0])
+        print(pesanan[1])
+        print(pesanan[2])
+        print(pesanan[3])
+        print(pesanan[4])
+        print(pesanan[5])
+        print(pesanan[6])
+        print(pesanan[7])
+        print(pesanan[8])
+        print(pesanan[9])
+        print(pesanan[10])
         table.field_names = ["Detail", "Value"]
         table.add_row(["ID Transaksi", pesanan[0]])
-        table.add_row(["ID Kelas", pesanan[1]])
-        table.add_row(["NIM", pesanan[2]])
-        table.add_row(["Email", pesanan[3]])
-        table.add_row(["Tanggal Pengajuan", pesanan[4]])
-        table.add_row(["Status Saat Ini", pesanan[5]])
+        table.add_row(["ID Detail Kelas", pesanan[1]])
+        table.add_row(["NIM Pemesan", pesanan[2]])
+        table.add_row(["Kode Kelas", pesanan[3]])
+        table.add_row(["Tanggal Pengajuan", pesanan[9]])
+        table.add_row(["Status Saat Ini", pesanan[10]])
 
         print("\nDetail Pengajuan:")
         print(table)
@@ -804,6 +815,8 @@ def proses_pembatalan_kelas_admin():
             table.field_names = ["ID Transaksi", "ID Kelas", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen","Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
     
             # Menambahkan data ke tabel
+            print(daftar_pembatalan)
+            
             for pembatalan in daftar_pembatalan:
                 table.add_row([
                     pembatalan[0],  # ID Transaksi

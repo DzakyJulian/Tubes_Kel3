@@ -37,12 +37,32 @@ def ajukan_kelas(nim, email):
         if results:
            print("\n=== Detail Kelas ===")
            table = PrettyTable()
-           table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Hari", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+           table.field_names = [
+               "ID Detail Kelas", 
+               "Kode Kelas", 
+               "Kode Mata Kuliah", 
+               "NIP Dosen", 
+               "Dosen yang Mengajar", 
+               "Hari", 
+               "Waktu Mulai", 
+               "Waktu Selesai", 
+               "Informasi Kelas", 
+               "Pengguna", 
+               "Status",
+            ]
            for row in results:
             table.add_row([ 
-                row[0], row[1], row[2], row[3], 
-                row[4], row[5], row[6], row[7], 
-                row[8], row[9], row[10]])
+                row[0], 
+                row[1], 
+                row[2], 
+                row[3], 
+                row[4], 
+                row[5], 
+                row[6], 
+                row[7], 
+                row[8], 
+                row[9], 
+                row[10]])
             print(table)
         else:
             print("Tidak ada Data Kelas ")    

@@ -999,8 +999,6 @@ def proses_pembatalan_kelas_mandiri():
         cursor.execute("UPDATE pengajuan SET status_pengajuan = %s, komentar = %s WHERE id_pengajuan = %s", (status, komentar, id_pengajuan))
         conn.commit()
 
-        print(f"Pembatalan dengan ID {id_pengajuan} telah diproses dan statusnya di ubah menjadi '{status}'.")
-
         if status == StatusTransaksi.ACC_PEMBATALAN.value:
             cursor.execute("""
                 UPDATE detail_kelas 
@@ -1011,7 +1009,7 @@ def proses_pembatalan_kelas_mandiri():
             """, (id_pengajuan,))
             conn.commit()
 
-        print("Data pada tabel detail_kelas telah diperbarui: kolom pengguna dikosongkan dan status diubah menjadi 'Tersedia'.")
+        print("Data pada tabel detail_kelas telah diperbarui!")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
@@ -1116,6 +1114,15 @@ def proses_pengajuan_mandiri():
             """, (kode_kelas,kode_matkul,hari,jam_mulai,jam_selesai,kode_dosen,informasiKelas,pengguna,))
             conn.commit()
             print("Data berhasil disimpan.")
+
+            # Dapatkan id_detail_kelas yang baru ditambahkan dari insert di atas
+            id_detail_kelas = cursor.lastrowid
+
+            cursor.execute("""
+                UPDATE pengajuan SET id_detail_kelas = %s WHERE id_pengajuan = %s
+            """, (id_detail_kelas, id_pengajuan))
+            conn.commit()
+            print("Pengajuan berhasil diperbarui dengan ID Detail Kelas.")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

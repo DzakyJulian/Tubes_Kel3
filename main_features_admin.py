@@ -336,27 +336,18 @@ def buat_kelas():
     print("\n=== Buat Kelas ===")
 
     # Memilih ruang kelas
-    while True:
-        print("\nPilih Ruang Kelas (Ketik '0' untuk kembali):")
-        cursor.execute("SELECT * FROM kelas")
-        ruang_kelas = cursor.fetchall()
+    print("\nPilih Ruang Kelas:")
+    cursor.execute("SELECT * FROM kelas")
+    ruang_kelas = cursor.fetchall()
 
-        if not ruang_kelas:
-            print("Tidak ada ruang kelas yang tersedia!")
-            return
+    if not ruang_kelas:
+        print("Tidak ada ruang kelas yang tersedia!")
+        return
 
-        for ruang in ruang_kelas:
-            print(f"Kode Kelas: {ruang[0]}, Informasi: {ruang[1]}")
+    for ruang in ruang_kelas:
+        print(f"Kode Kelas: {ruang[0]}, Informasi: {ruang[1]}")
 
-        kode_kelas = input("\nPilih Kode Kelas untuk kelas: ").strip()
-        if kode_kelas == '0':
-            return  # Kembali ke menu utama
-
-        # Validasi apakah kode kelas yang dipilih ada
-        if any(kelas[0] == kode_kelas for kelas in ruang_kelas):
-            break
-        else:
-            print("Kode kelas tidak valid, coba lagi.")
+    kode_kelas = input("\nPilih Kode Kelas untuk kelas: ").strip()
 
     # Menampilkan jadwal penggunaan ruang yang dipilih
     query = """
@@ -374,119 +365,105 @@ def buat_kelas():
             print("-" * 40)
 
     # Memilih dosen
-    while True:
-        nip = input("Masukkan NIP Dosen (Ketik '0' untuk kembali): ").strip()
-        if nip == '0':
-            return  # Kembali ke menu utama
+    nip = input("Masukkan NIP Dosen: ").strip()
 
-        try:
-            # Ambil jadwal kosong dosen
-            query = """
-            SELECT jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai, dosen.nama
-            FROM jadwal_dosen
-            INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
-            WHERE jadwal_dosen.nip = %s
-            """
-            cursor.execute(query, (nip,))
-            jadwal_list = cursor.fetchall()
+    try:
+        # Ambil jadwal kosong dosen dan nama dosen dari database
+        query = """
+        SELECT jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai, dosen.nama
+        FROM jadwal_dosen
+        INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
+        WHERE jadwal_dosen.nip = %s
+        """
+        cursor.execute(query, (nip,))
+        jadwal_list = cursor.fetchall()
 
-            if not jadwal_list:
-                print("Tidak ada jadwal kosong untuk dosen ini! Coba dosen lain.")
+        if not jadwal_list:
+            print("Tidak ada jadwal kosong untuk dosen ini!")
+            return
+
+        print("\nJadwal Kosong Dosen:")
+        for jadwal in jadwal_list:
+            print(f"Dosen: {jadwal[3]}, Hari: {jadwal[0]}, Jam: {jadwal[1]} - {jadwal[2]}")
+
+        # Memilih mata kuliah
+        view_mata_kuliah()
+        kode_matkul = input("\nMasukkan Kode Mata Kuliah: ").strip()
+        kategori_sks = input("Masukkan kategori SKS (4, 3, 2): ").strip()
+
+        # Validasi kategori SKS
+        if kategori_sks not in ['4', '3', '2']:
+            print("Kategori SKS tidak valid! Pilih 4, 3, atau 2.")
+            return
+
+        durasi = int(kategori_sks) * 50  # Durasi dalam menit
+
+        # Memasukkan waktu penggunaan manual
+        while True:
+            print("\nMasukkan Waktu Penggunaan Kelas:")
+            hari = input("Masukkan Hari (contoh: Senin): ").strip()
+            jam_mulai = input("Masukkan Jam Mulai (HH:MM, contoh: 08:00): ").strip()
+            jam_selesai = input("Masukkan Jam Selesai (HH:MM, contoh: 10:00): ").strip()
+
+            try:
+                jam_mulai_dt = datetime.strptime(jam_mulai, "%H:%M")
+                jam_selesai_dt = datetime.strptime(jam_selesai, "%H:%M")
+            except ValueError:
+                print("Format jam salah! Gunakan format HH:MM.")
                 continue
 
-            print("\nJadwal Kosong Dosen:")
-            for jadwal in jadwal_list:
-                print(f"Dosen: {jadwal[3]}, Hari: {jadwal[0]}, Jam: {jadwal[1]} - {jadwal[2]}")
-            break
-        except Exception as e:
-            print(f"Terjadi kesalahan: {e}")
-            return
+                # Validasi logis: jam mulai harus lebih kecil dari jam selesai
+            if jam_mulai_dt >= jam_selesai_dt:
+                print("Jam mulai harus lebih kecil dari jam selesai. Silakan masukkan ulang.")
+                continue
 
-    # Pilih mata kuliah
-    view_mata_kuliah()
-    kode_matkul = input("\nMasukkan Kode Mata Kuliah (Ketik '0' untuk kembali): ").strip()
-    if kode_matkul == '0':
-        return
+            # Validasi jadwal dosen dengan menggunakan BETWEEN
+            query_dosen = """
+                SELECT nip, hari, jam_mulai, jam_selesai
+                FROM jadwal_dosen
+                WHERE nip = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+            """
+            cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
+            jadwal_bentrok_dosen = cursor.fetchall()
 
-    kategori_sks = input("Masukkan kategori SKS (4, 3, 2) (Ketik '0' untuk kembali): ").strip()
-    if kategori_sks == '0':
-        return
+            if jadwal_bentrok_dosen:
+                print("\nWaktu yang Anda pilih di luar jadwal dosen!")
+                print(f"\n===== Berikut jadwal dosen pada hari {hari.capitalize()} =====")
+                for jadwal in jadwal_bentrok_dosen:
+                    print(f"Dosen: {jadwal[0]}, Hari: {jadwal[1]}, Jam: {jadwal[2]} - {jadwal[3]}")
+                continue
+        
+            # Validasi bentrok waktu kelas
+            query = """
+                SELECT kode_kelas, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas 
+                WHERE kode_kelas = %s AND hari = %s AND ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+            """
+            cursor.execute(query, (kode_kelas, hari, jam_mulai, jam_selesai))
+            kelas_bentrok = cursor.fetchall()
 
-    # Validasi kategori SKS
-    if kategori_sks not in ['4', '3', '2']:
-        print("Kategori SKS tidak valid! Pilih 4, 3, atau 2.")
-        return
+            if kelas_bentrok:
+                print("\nJadwal yang Anda pilih bertabrakan dengan kelas lain!")
+                for kelas in kelas_bentrok:
+                    print(f"Kode Kelas: {kelas[0]}, Hari: {kelas[1]}, Jam: {kelas[2]} - {kelas[3]}, Pengguna: {kelas[4]}")
+                continue
+            else:
+                break
 
-    durasi = int(kategori_sks) * 50  # Durasi dalam menit
+        # Memasukkan pengguna kelas
+        pengguna = input("\nPengguna kelas (contoh: RPL 1-C, kosongkan jika tidak ada pengguna): ").strip()
+        status = 'Tersedia' if not pengguna else 'Digunakan'
 
-    # Memasukkan waktu penggunaan manual
-    while True:
-        print("\nMasukkan Waktu Penggunaan Kelas (Ketik '0' untuk kembali):")
-        hari = input("Masukkan Hari (contoh: Senin): ").strip()
-        if hari == '0':
-            return
-
-        jam_mulai = input("Masukkan Jam Mulai (HH:MM, contoh: 08:00): ").strip()
-        if jam_mulai == '0':
-            return
-
-        jam_selesai = input("Masukkan Jam Selesai (HH:MM, contoh: 10:00): ").strip()
-        if jam_selesai == '0':
-            return
-
-        try:
-            # Validasi format jam
-            jam_mulai = datetime.strptime(jam_mulai, "%H:%M").strftime("%H:%M")
-            jam_selesai = datetime.strptime(jam_selesai, "%H:%M").strftime("%H:%M")
-        except ValueError:
-            print("Format jam salah! Gunakan format HH:MM.")
-            continue
-
-        # Validasi jadwal dosen
-        query_dosen = """
-            SELECT nip, hari, jam_mulai, jam_selesai
-            FROM jadwal_dosen
-            WHERE nip = %s AND hari = %s
-            AND (
-                (%s BETWEEN jam_mulai AND jam_selesai)
-                OR (%s BETWEEN jam_mulai AND jam_selesai)
-            )
+        # Simpan data kelas ke database
+        query = """
+            INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, nip_dosen, jam_mulai, jam_selesai, pengguna, status) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai, jam_selesai))
-        jadwal_bentrok_dosen = cursor.fetchall()
+        cursor.execute(query, (kode_kelas.upper(), kode_matkul.upper(), hari.capitalize(), nip, jam_mulai, jam_selesai, pengguna.upper(), status))
+        conn.commit()
+        print("Kelas berhasil dibuat.")
 
-        if jadwal_bentrok_dosen:
-            print("\nWaktu yang Anda pilih di luar jadwal dosen!")
-            continue
-        else:
-            break
-
-    # Validasi bentrok waktu kelas
-    query = """
-        SELECT kode_kelas, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas 
-        WHERE kode_kelas = %s AND hari = %s AND ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
-    """
-    cursor.execute(query, (kode_kelas, hari, jam_mulai, jam_selesai))
-    kelas_bentrok = cursor.fetchall()
-
-    if kelas_bentrok:
-        print("\nJadwal yang Anda pilih bertabrakan dengan kelas lain!")
-        return
-
-    pengguna = input("\nPengguna kelas (Ketik '0' untuk kembali): ").strip()
-    if pengguna == '0':
-        return
-
-    # Simpan data kelas ke database
-    query = """
-        INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, nip_dosen, jam_mulai, jam_selesai, pengguna, status) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    status = 'Tersedia' if not pengguna else 'Digunakan'
-    cursor.execute(query, (kode_kelas.upper(), kode_matkul.upper(), hari.capitalize(), nip, jam_mulai, jam_selesai, pengguna.upper(), status))
-    conn.commit()
-    print("Kelas berhasil dibuat.")
-
+    except Exception as e:
+        print(f"Terjadi kesalahan: {e}")
 
 def edit_kelas():
     cursor = conn.cursor()
@@ -917,7 +894,7 @@ def proses_pembatalan_kelas_admin():
     finally:
         cursor.close()
 
-def proses_pengajuan_manual():
+def proses_pengajuan_mandiri():
     cursor = conn.cursor()
     try:
         cursor.execute("""

@@ -2,9 +2,9 @@ import mysql.connector
 from main_features_admin import (
     add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_datakelas, proses_pengajuan_kelas,
     input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen,
-    tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_manual
+    tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri
 )
-from main_features_mhs import ajukan_kelas, lihat_pesanan_saya, batal_kelas, pengajuan
+from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, pengajuan, lihat_pesanan_mandiri
 from register import register_user
 from login import login_main
 from admin_db_info import get_current_mysql_password
@@ -26,7 +26,7 @@ def admin_menu():
         table = PrettyTable()
         table.field_names = ["No", "Menu Admin"]
         table.add_row([1, "Lihat Pengajuan Kelas"])
-        table.add_row([2, "Lihat Pengajuan Mahasiswa"])
+        table.add_row([2, "Lihat Pengajuan Kelas Mahasiswa"])
         table.add_row([3, "Lihat Pengajuan Pembatalan Kelas"])
         table.add_row([4, "Tambah Mata Kuliah"])
         table.add_row([5, "Lihat Data Mata Kuliah"])
@@ -48,7 +48,7 @@ def admin_menu():
         if choice == '1':
             proses_pengajuan_kelas()
         elif choice == '2':
-            proses_pengajuan_manual()
+            proses_pengajuan_mandiri()
         elif choice == '3':
             proses_pembatalan_kelas_admin()
         elif choice == '4':
@@ -100,9 +100,18 @@ def mahasiswa_menu(nim, email):
         elif pilihan == '2':
             ajukan_kelas(nim, email)
         elif pilihan == '3':
-            pengajuan()
+            pengajuan(nim, email)
         elif pilihan == '4':
-            lihat_pesanan_saya(nim)
+            print("1. Pengajuan Kelas")
+            print("2. Pengajuan Kelas Mandiri")
+            print("0. Kembali ke Menu Utama") 
+            choices = input("Masukkan pilihan (1/2/0): ").strip()
+            if choices == '1':
+                lihat_pesanan_kelas(nim)
+            elif choices == '2':
+                lihat_pesanan_mandiri(nim)
+            elif choices == '0':
+                mahasiswa_menu(nim, email)
         elif pilihan == '5':
             batal_kelas(nim)  # Memanggil fungsi untuk membatalkan kelas
         elif pilihan == '6':

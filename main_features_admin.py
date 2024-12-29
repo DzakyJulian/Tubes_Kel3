@@ -1020,6 +1020,9 @@ def proses_pembatalan_kelas_mandiri():
 def proses_pengajuan_mandiri():
     cursor = conn.cursor()
     try:
+        # Pastikan autocommit diaktifkan
+        conn.autocommit = True
+
         cursor.execute("""
             SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
                     jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
@@ -1090,10 +1093,9 @@ def proses_pengajuan_mandiri():
         print(f"Pengajuan ID {id_pengajuan} telah diproses.")
 
         if status_pengajuan == 'ACC Pengajuan':
-
             cursor.execute("""
                 SELECT kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 
-                    nip_dosen, informasi_kelas, pengguna   
+                       nip_dosen, informasi_kelas, pengguna   
                 FROM pengajuan WHERE id_pengajuan = %s
             """, (id_pengajuan,))
             data = cursor.fetchone()
@@ -1123,6 +1125,29 @@ def proses_pengajuan_mandiri():
             """, (id_detail_kelas, id_pengajuan))
             conn.commit()
             print("Pengajuan berhasil diperbarui dengan ID Detail Kelas.")
+
+        # Memuat ulang pengajuan setelah update
+        cursor.execute("""
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan WHERE status_pengajuan = 'Pengajuan Pending'
+        """)
+        pengajuan = cursor.fetchall()
+
+        # Daftar pengajuan yang telah diperbarui
+        print("\n===== Daftar Pengajuan yang Perlu Diproses =====")
+        for data in pengajuan:
+            print("="*40)
+            print(f"ID Pengajuan       : {data[0]}")
+            print(f"Diajukan oleh      : {data[1]}")
+            print(f"Kode Kelas         : {data[2]}")
+            print(f"Kode Mata Kuliah   : {data[3]}")
+            print(f"Kode Dosen         : {data[4]}")
+            print(f"Dosen              : {data[5]}")
+            print(f"Waktu Penggunaan   : {data[6]}, {data[7]} - {data[8]}")
+            print(f"Tanggal Pengajuan  : {data[9]}")
+            print(f"Status Pengajuan   : {data[10]}")
+            print("="*40)
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

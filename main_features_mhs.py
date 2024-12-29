@@ -307,7 +307,7 @@ def pengajuan(nim, email):
             print("Kategori SKS tidak valid! Pilih 4, 3, atau 2.")
             return
 
-        durasi = int(kategori_sks) * 50  # Durasi dalam menit
+        # durasi = int(kategori_sks) * 50  # Durasi dalam menit
 
         # Memasukkan waktu penggunaan manual
         while True:
@@ -381,7 +381,7 @@ def pengajuan(nim, email):
 
         cursor.execute("""
             INSERT INTO pengajuan (nim, email, pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pengajuan Pending')
         """, (nim, email, pengguna, kode_kelas, nip, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
 
         conn.commit()
@@ -390,6 +390,86 @@ def pengajuan(nim, email):
 
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
+
+def batal_pengajuan(nim):
+    cursor = conn.cursor()
+    
+    try:
+        # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
+        print("\n--- Pesanan Kelas Anda ---")
+        cursor.execute(''' 
+            SELECT id_pengajuan, pengguna, kode_kelas, nip_dosen, nama_dosen, hari,
+                jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan
+            WHERE pengajuan.nim = %s AND status_pengajuan = 'Pengajuan Pending' OR status_pengajuan = 'ACC Pengajuan'
+        ''', (nim,))
+        result = cursor.fetchall()
+
+        if not result:
+            print("Tidak ada kelas yang dapat dibatalkan atau sudah dikonfirmasi.")
+            return
+
+        # Menampilkan daftar pesanan kelas yang dapat dibatalkan
+        print("-" * 40)
+        for row in result:
+            print(f"ID Pesanan           : {row[0]}")
+            print(f"Kode Kelas           : {row[2]}")
+            print(f"Dosen                : {row[3]} - {row[4]}")
+            print(f"Waktu Penggunaan     : {row[5]}, {row[6]} - {row[7]}")
+            print(f"Tanggal Transaksi    : {row[8]}")
+            print(f"Diajukan oleh        : {row[1]}")
+            print(f"Status Transaksi     : {row[9]}")
+            print("-" * 40)
+
+        # Input ID Pesanan yang ingin dibatalkan
+        id_pengajuan = input("Masukkan ID Pesanan yang ingin dibatalkan (ketik 0 untuk kembali): ").strip()
+
+        if id_pengajuan == '0':
+            return
+
+        # Verifikasi ID Transaksi yang dipilih
+        cursor.execute('''
+            SELECT status_pengajuan FROM pengajuan WHERE id_pengajuan = %s AND nim = %s
+        ''', (id_pengajuan, nim))
+        pengajuan_terpilih = cursor.fetchone()
+        status_pengajuan_terpilih = pengajuan_terpilih[0]
+
+        if pengajuan_terpilih is None:
+            print("ID Transaksi tidak ditemukan.")
+            return
+
+        # Proses konfirmasi pembatalan
+        confirmation = input(f"Apakah Anda yakin ingin membatalkan pengajuan kelas ID {id_pengajuan}? (Y/N) atau ketik 0 untuk kembali: ")
+        if confirmation.upper() == 'Y':
+
+            if status_pengajuan_terpilih == "Pengajuan Pending":
+                # Jika pesanan berstatus 'Pengajuan Pending', langsung batalkan
+                cursor.execute(''' 
+                UPDATE pengajuan SET status_pengajuan = 'Pengajuan Dibatalkan' WHERE id_pengajuan = %s AND nim = %s
+                ''', (id_pengajuan, nim))
+                conn.commit()
+                print(f"Pesanan dengan ID {id_pengajuan} berhasil dibatalkan.")
+                return
+
+            if status_pengajuan_terpilih == "ACC Pengajuan":
+                # Jika sudah di-ACC, ubah status menjadi 'Pembatalan Pending'
+                cursor.execute(''' 
+                UPDATE pengajuan SET status_pengajuan = 'Pembatalan Pending' WHERE id_pengajuan = %s AND nim = %s
+                ''', (id_pengajuan, nim))
+                conn.commit()
+                print(f"Pengajuan pembatalan untuk ID {id_pengajuan} berhasil diajukan. Menunggu konfirmasi admin.")
+            else:
+                print(f"Pesanan dengan ID {id_pengajuan} tidak ditemukan atau tidak dapat dibatalkan. Status saat ini: {status_pengajuan_terpilih}.")
+                return
+            
+        elif confirmation.upper() == 'N':
+            print("Pembatalan dibatalkan.")
+        elif confirmation == '0':
+            return
+        else:
+            print("Input tidak valid.")
+    except mysql.connector.Error as err:
+        print(f"Error: Terjadi kesalahan saat mengambil data transaksi. {err}")
     
 def lihat_pesanan_kelas(NIM):
     cursor = conn.cursor()

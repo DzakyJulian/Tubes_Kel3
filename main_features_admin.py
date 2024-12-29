@@ -894,13 +894,138 @@ def proses_pembatalan_kelas_admin():
     finally:
         cursor.close()
 
+def proses_pembatalan_kelas_mandiri():
+    cursor = conn.cursor()
+    try:
+        # Ambil semua pengajuan pembatalan yang berstatus "Pembatalan Pending"
+        cursor.execute(
+            """
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan WHERE status_pengajuan = %s
+            """, (StatusTransaksi.PEMBATALAN_PENDING.value,))
+        daftar_pembatalan = cursor.fetchall()
+
+        if not daftar_pembatalan:
+            print("Tidak ada pengajuan pembatalan yang tersedia")
+            return
+        
+        # Tampilkan daftar pengajuan pembatalan kelas
+        print("Daftar pengajuan pembatalan kelas: ")
+        
+        # Cek apakah ada data 
+        if daftar_pembatalan:
+            print("\n=== Daftar Pembatalan ===")
+            table = PrettyTable()
+            table.field_names = ["ID Transaksi", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen", "Dosen", "Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
+    
+            # Menambahkan data ke tabel
+            print(daftar_pembatalan)
+            
+            for pembatalan in daftar_pembatalan:
+                table.add_row([
+                    pembatalan[0],  # ID Transaksi
+                    pembatalan[1],  # Diajukan oleh
+                    pembatalan[2],  # Kode Kelas
+                    pembatalan[3],  # Kode Matkul
+                    pembatalan[4],  # NIP Dosen
+                    pembatalan[5],  # Nama Dosen
+                    pembatalan[6],  # Hari
+                    pembatalan[7],  # Jam mulai
+                    pembatalan[8],  # Jam selesai
+                    pembatalan[9], # Tanggal pengajuan
+                    pembatalan[10] # Status saat ini
+                ])
+    
+             # Menampilkan tabel
+            print(table)
+        else:
+            print("Tidak ada pembatalan yang ditemukan.")
+
+        # Input ID pengajuan pembatalan yang akan diproses
+        id_pengajuan = input("Masukkan ID transaksi yang akan diproses: ").strip()
+        
+        # Periksa apakah ID pembatalan valid
+        cursor.execute(
+            """
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+            FROM pengajuan WHERE id_pengajuan = %s
+            """, (id_pengajuan,))
+        pembatalan = cursor.fetchone()
+         
+        if pembatalan is None or pembatalan[10] != StatusTransaksi.PEMBATALAN_PENDING.value:
+            print("ID Pengajuan tidak valid atau status tidak sesuai.")
+            return  
+
+        # Tampilkan detail pengajuan pembatalan kelas
+        table = PrettyTable()
+        table.field_names = ["Detail", "Value"]
+
+        # Menambahkan data pembatalan ke tabel
+        table.add_row(["ID Pengajuan", pembatalan[0]])
+        table.add_row(["Diajukan oleh", pembatalan[1]])
+        table.add_row(["Kode Kelas", pembatalan[2]])
+        table.add_row(["Kode Mata Kuliah", pembatalan[3]])
+        table.add_row(["NIP Dosen", pembatalan[4]])
+        table.add_row(["Nama Dosen", pembatalan[5]])
+        table.add_row(["Hari", pembatalan[6]])
+        table.add_row(["Jam Mulai", pembatalan[7]])
+        table.add_row(["Jam Selesai", pembatalan[8]])
+        table.add_row(["Tanggal Pengajuan", pembatalan[9]])
+        table.add_row(["Status Saat Ini", pembatalan[10]])
+
+       # Menampilkan tabel
+        print("\nDetail Pembatalan:")
+        print(table)
+
+        # Input keputusan dan alasannya dari admin
+        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+        komentar = str(input("Alasan di ACC atau ditolak: ")).strip()
+
+        # kosongin kalau ga ada komentar
+        if len(komentar) <= 0:
+            komentar = "Tidak ada"
+
+        #Validasi keputusan
+        if keputusan.upper() not in ['Y', 'N']:
+            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            return
+        
+        # proses berdasarkan keputusan admin
+        status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
+
+        # Update status pembatalan berdasarkan keputusan admin
+        cursor.execute("UPDATE pengajuan SET status_pengajuan = %s, komentar = %s WHERE id_pengajuan = %s", (status, komentar, id_pengajuan))
+        conn.commit()
+
+        print(f"Pembatalan dengan ID {id_pengajuan} telah diproses dan statusnya di ubah menjadi '{status}'.")
+
+        if status == StatusTransaksi.ACC_PEMBATALAN.value:
+            cursor.execute("""
+                UPDATE detail_kelas 
+                SET pengguna = '', status = 'Tersedia' 
+                WHERE id_detail_kelas = (
+                    SELECT id_detail_kelas FROM pengajuan WHERE id_pengajuan = %s
+                )
+            """, (id_pengajuan,))
+            conn.commit()
+
+        print("Data pada tabel detail_kelas telah diperbarui: kolom pengguna dikosongkan dan status diubah menjadi 'Tersedia'.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+
+    finally:
+        cursor.close()
+
 def proses_pengajuan_mandiri():
     cursor = conn.cursor()
     try:
         cursor.execute("""
             SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
                     jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
-            FROM pengajuan WHERE status_pengajuan = 'Pending'
+            FROM pengajuan WHERE status_pengajuan = 'Pengajuan Pending'
         """)
         pengajuan = cursor.fetchall()
 
@@ -956,7 +1081,7 @@ def proses_pengajuan_mandiri():
             print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
             return
         
-        status_pengajuan = 'ACC' if keputusan.upper() == 'Y' else 'Ditolak'
+        status_pengajuan = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
 
         # Update status pengajuan berdasarkan keputusan
         cursor.execute(
@@ -966,7 +1091,7 @@ def proses_pengajuan_mandiri():
         conn.commit()
         print(f"Pengajuan ID {id_pengajuan} telah diproses.")
 
-        if status_pengajuan == 'ACC':
+        if status_pengajuan == 'ACC Pengajuan':
 
             cursor.execute("""
                 SELECT kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 

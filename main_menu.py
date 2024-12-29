@@ -4,7 +4,7 @@ from main_features_admin import (
     input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen,
     tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
 )
-from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
+from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, lihat_profil, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
 from register import register_user
 from login import login_main
 from admin_db_info import get_current_mysql_password
@@ -101,7 +101,8 @@ def mahasiswa_menu(nim, email):
         table.add_row([3, "Pengajuan Mandiri"])
         table.add_row([4, "Lihat Pesanan Saya"])
         table.add_row([5, "Batalkan Kelas"])
-        table.add_row([6, "Logout"])
+        table.add_row([6, "Lihat Profil"])
+        table.add_row([7, "Logout"])
         print(table)
         
         pilihan = input("\nMasukkan pilihan (1-6): ").strip()
@@ -141,6 +142,8 @@ def mahasiswa_menu(nim, email):
                 print("Pilih sesuai menu 1/2/0!")
                 return
         elif pilihan == '6':
+            lihat_profil(nim)
+        elif pilihan == '7':
             print("Anda telah logout.")
             break  # Keluar dari menu mahasiswa setelah logout
         else:

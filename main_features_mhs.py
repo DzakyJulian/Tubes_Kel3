@@ -571,3 +571,24 @@ def lihat_pesanan_mandiri(NIM):
         print(f"Terjadi kesalahan: {err}")
     finally:
         cursor.close()
+
+
+def lihat_profil(NIM):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f'''
+        SELECT * FROM users WHERE nim = '{NIM}'
+        ''')
+        res = cursor.fetchone()
+
+        table = PrettyTable()
+        table.field_names = ["Property", "Value"]
+        table.add_row(["NIM", res[0]])
+        table.add_row(["Email", res[1]])
+        table.add_row(["Role", res[3]])
+        print(table)
+
+    except mysql.connector.Error as err:
+        print("Profil tidak ditemukan atau terjadi kesalahan.")
+    finally:
+        cursor.close()

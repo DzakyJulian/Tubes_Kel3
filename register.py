@@ -26,24 +26,20 @@ def register_user():
             break
     # Validasi Email kosong
     while True:
-            email = input("Masukkan Email: ").strip().lower()
-            if len(email) <= 0:
-                print("Email tidak boleh kosong")
-            else:
-                break
+        email = input("Masukkan Email: ").strip().lower()
+        if len(email) <= 0:
+            print("Email tidak boleh kosong")
+        else:
+            break
     # Validasi Password kosong
     while True:
-            password = input("Masukkan Password: ").strip()
-            if len(password) <= 0:
-                print("Password tidak boleh kosong")
-            else:
-                break
+        password = input("Masukkan Password: ").strip()
+        if len(password) <= 0:
+            print("Password tidak boleh kosong")
+        else:
+            break
     password_hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     role = "mahasiswa"
-
-    # if role not in ['admin', 'mahasiswa']:
-    #     print("Role tidak valid. Silakan gunakan 'admin' atau 'mahasiswa'.")
-    #     return
 
     try:
         cursor.execute('''

@@ -1,4 +1,5 @@
 import mysql.connector
+import os
 from main_features_admin import (
     add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_datakelas, proses_pengajuan_kelas,
     input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen,
@@ -150,6 +151,8 @@ def mahasiswa_menu(nim, email):
             print("Pilihan tidak valid. Silakan coba lagi.")
 
 def main():
+    os.system('cls')
+
     while True:
         table = PrettyTable()
         table.field_names = ["No", "Sistem E-Booking Class"]

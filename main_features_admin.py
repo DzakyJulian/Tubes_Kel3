@@ -678,17 +678,6 @@ def proses_pengajuan_kelas():
             return
         
         table = PrettyTable()
-        print(pesanan[0])
-        print(pesanan[1])
-        print(pesanan[2])
-        print(pesanan[3])
-        print(pesanan[4])
-        print(pesanan[5])
-        print(pesanan[6])
-        print(pesanan[7])
-        print(pesanan[8])
-        print(pesanan[9])
-        print(pesanan[10])
         table.field_names = ["Detail", "Value"]
         table.add_row(["ID Transaksi", pesanan[0]])
         table.add_row(["ID Detail Kelas", pesanan[1]])

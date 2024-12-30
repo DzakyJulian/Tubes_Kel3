@@ -129,19 +129,22 @@ def mahasiswa_menu(nim, email):
                 print("Pilih sesuai menu 1/2/0!")
                 return   
         elif pilihan == '5':
-            print("1. Batalkan Kelas")
-            print("2. Batalkan Pengajuan Kelas Mandiri")
-            print("0. Kembali ke Menu Utama") 
-            choices = input("Masukkan pilihan (1/2/0): ").strip()
-            if choices == '1':
-                batal_kelas(nim)
-            elif choices == '2':
-                batal_pengajuan(nim)
-            elif choices == '0':
-                mahasiswa_menu(nim, email)
-            else:
-                print("Pilih sesuai menu 1/2/0!")
-                return
+            while True:
+                print("1. Batalkan Kelas")
+                print("2. Batalkan Pengajuan Kelas Mandiri")
+                print("0. Kembali ke Menu Utama") 
+                choices = input("Masukkan pilihan (1/2/0): ").strip()
+                if choices == '1':
+                    batal_kelas(nim)
+                    break
+                elif choices == '2':
+                    batal_pengajuan(nim)
+                    break
+                elif choices == '0':
+                    mahasiswa_menu(nim, email)
+                    break
+                else:
+                    print("Pilih sesuai menu 1/2/0!")
         elif pilihan == '6':
             lihat_profil(nim)
         elif pilihan == '7':

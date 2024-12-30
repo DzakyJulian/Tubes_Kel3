@@ -34,8 +34,6 @@ def ajukan_kelas(nim, email):
             print("Tidak ada kelas yang tersedia saat ini.")
             return
 
-        print(results[0])
-
         # Menampilkan daftar kelas yang tersedia
         if results:
             print("\n=== Detail Kelas ===")
@@ -70,8 +68,14 @@ def ajukan_kelas(nim, email):
         else:
             print("Tidak ada Data Kelas ")    
 
-        pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C) atau ketik 0 untuk kembali: ").strip()
-        
+        # Validasi pengguna tidak boleh kosong
+        while True:
+            pengguna = input("Siapa yang mengajukan kelas? (masukkan kelas contoh RPL 1-C) atau ketik 0 untuk kembali: ").strip()
+            if len(pengguna) <= 0:
+                print("Pengguna kelas tidak boleh kosong.")
+            else:
+                break
+            
         if pengguna == '0':
             return
         

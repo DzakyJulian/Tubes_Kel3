@@ -147,7 +147,7 @@ def cek_ketersediaan_kelas(jam_mulai_baru, jam_selesai_baru):
         cursor.execute(query, (jam_selesai_baru, jam_mulai_baru))
         results = cursor.fetchall()
 
-        if results:
+        if not results:
             print("Tidak dapat mengajukan kelas, karena waktu tersebut sudah digunakan oleh pengguna lain.")
             return False
         return True

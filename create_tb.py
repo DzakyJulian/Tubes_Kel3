@@ -85,14 +85,18 @@ def create_table():
             tanggal_transaksi DATETIME NOT NULL,
             status_transaksi ENUM('ACC Pengajuan','ACC Pembatalan', 'Pengajuan Ditolak', 'Pembatalan Ditolak', 'Pengajuan Pending', 'Pembatalan Pending', 'Pengajuan Dibatalkan') NOT NULL,
             pengguna VARCHAR(30) NOT NULL,
-            komentar VARCHAR(255),
+            komentar TEXT,
             FOREIGN KEY (nim) REFERENCES users(nim),
             FOREIGN KEY (id_detail_kelas) REFERENCES detail_kelas(id_detail_kelas)
         )''')
         
+        # Tabel pengajuan
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pengajuan (
             id_pengajuan INT(11) AUTO_INCREMENT PRIMARY KEY,
+            id_detail_kelas INT(11) NOT NULL,
+            nim INT(20) NOT NULL,
+            email VARCHAR(255) NOT NULL,
             kode_kelas VARCHAR(30) NOT NULL,
             kode_matkul VARCHAR(10) NOT NULL,
             hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu') NOT NULL,
@@ -103,8 +107,9 @@ def create_table():
             informasi_kelas TEXT,
             pengguna VARCHAR(30) NOT NULL,
             tgl_pengajuan TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
-            status_pengajuan ENUM('ACC', 'DITOLAK', 'PENDING'),
-            FOREIGN KEY (nip_dosen) REFERENCES dosen(nip)
+            status_pengajuan ENUM('ACC Pengajuan', 'Pengajuan Ditolak', 'ACC Pembatalan', 'Pembatalan Ditolak', 'Pengajuan Pending', 'Pembatalan Pending', 'Pengajuan Dibatalkan'),
+            komentar TEXT,
+            FOREIGN KEY (nim) REFERENCES users(nim)
         )
         ''')
     

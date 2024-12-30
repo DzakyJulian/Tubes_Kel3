@@ -483,7 +483,6 @@ def lihat_pesanan_kelas(NIM):
                        INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
                 """)
         result = cursor.fetchall()
-        print(result)
         
         if len(result) == 0:  # Jika tidak ada data
             print("Anda belum memiliki pesanan kelas.")

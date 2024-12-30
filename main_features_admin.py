@@ -681,8 +681,13 @@ def proses_pengajuan_kelas():
         table.field_names = ["Detail", "Value"]
         table.add_row(["ID Transaksi", pesanan[0]])
         table.add_row(["ID Detail Kelas", pesanan[1]])
-        table.add_row(["NIM Pemesan", pesanan[2]])
-        table.add_row(["Kode Kelas", pesanan[3]])
+        table.add_row(["Kode Kelas", pesanan[2]])
+        table.add_row(["NIM Pemesan", pesanan[3]])
+        table.add_row(["NIP Dosen", pesanan[4]])
+        table.add_row(["Hari", pesanan[5]])
+        table.add_row(["Jam Mulai", pesanan[6]])
+        table.add_row(["Jam Selesai", pesanan[7]])
+        table.add_row(["Pengguna", pesanan[8]])
         table.add_row(["Tanggal Pengajuan", pesanan[9]])
         table.add_row(["Status Saat Ini", pesanan[10]])
 

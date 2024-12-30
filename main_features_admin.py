@@ -790,9 +790,6 @@ def proses_pembatalan_kelas_admin():
             print("\n=== Daftar Pembatalan ===")
             table = PrettyTable()
             table.field_names = ["ID Transaksi", "ID Kelas", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen","Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
-    
-            # Menambahkan data ke tabel
-            print(daftar_pembatalan)
             
             for pembatalan in daftar_pembatalan:
                 table.add_row([
@@ -918,9 +915,6 @@ def proses_pembatalan_kelas_mandiri():
             print("\n=== Daftar Pembatalan ===")
             table = PrettyTable()
             table.field_names = ["ID Transaksi", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen", "Dosen", "Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
-    
-            # Menambahkan data ke tabel
-            print(daftar_pembatalan)
             
             for pembatalan in daftar_pembatalan:
                 table.add_row([

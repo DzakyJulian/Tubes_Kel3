@@ -623,8 +623,8 @@ def proses_pengajuan_kelas():
         # Ambil semua pengajuan yang tersedia
         cursor.execute(
             """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
-                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
+                   detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
                    transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
@@ -635,21 +635,21 @@ def proses_pengajuan_kelas():
         if not daftar_pengajuan:
             print("Tidak ada pengajuan yang tersedia.")
             return
-
+    
         # Tampilkan daftar pengajuan
         if daftar_pengajuan:  # Jika ada data pengajuan
             print("\n=== Daftar Pengajuan ===")
             table = PrettyTable()
-            table.field_names = ["ID Transaksi", "ID Kelas", "NIM", "Email", "Tanggal Pengajuan", "Status Saat Ini"]
+            table.field_names = ["ID Transaksi", "ID Detail Kelas", "NIM Pemesan", "Pengguna Kelas", "Tanggal Pengajuan", "Status Saat Ini"]
         
             for pengajuan in daftar_pengajuan:
                 table.add_row([
                     pengajuan[0],  # ID Transaksi
-                    pengajuan[1],  # ID Kelas
-                    pengajuan[2],  # NIM
-                    pengajuan[3],  # Email
-                    pengajuan[4],  # Tanggal Pengajuan
-                    pengajuan[5]   # Status Saat Ini
+                    pengajuan[1],  # ID Detail Kelas
+                    pengajuan[3],  # NIM Pemesan
+                    pengajuan[8],   # Pengguna Kelas
+                    pengajuan[9],   # Tanggal Pengajuan
+                    pengajuan[10],   # Status
                 ])
         
             print(table)
@@ -662,8 +662,8 @@ def proses_pengajuan_kelas():
         # Periksa apakah ID Pengajuan valid
         cursor.execute(
             """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, transaksi.nim,
-                   detail_kelas.kode_kelas, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
+                   detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
                    transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas

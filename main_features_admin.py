@@ -46,17 +46,19 @@ def add_mata_kuliah():
     
     try:
         while True:
-            kode_matkul = input("Masukkan Kode Mata Kuliah (tekan Enter untuk kembali): ").strip()
+            kode_matkul = input("Masukkan Kode Mata Kuliah Baru (tekan Enter untuk kembali): ").strip()
             if not kode_matkul:  # Jika input kosong, berhenti
                 break
             
-            nama_matkul = input("Masukkan Nama Mata Kuliah: ").strip()
+            nama_matkul = input("Masukkan Nama Mata Kuliah Baru (Ketik '0' untuk kembali ke Menu utama): ").strip()
             if not nama_matkul:  # Validasi nama mata kuliah kosong
                 print("Nama mata kuliah tidak boleh kosong. Silakan ulangi.")
                 continue
+            elif nama_matkul == '0':
+                break
             
             # Insert data ke database
-            cursor.execute("INSERT INTO mata_kuliah (kode_matkul, nama_matkul) VALUES (%s, %s)", (kode_matkul, nama_matkul))
+            cursor.execute("INSERT INTO mata_kuliah (kode_matkul, nama_matkul) VALUES (%s, %s)", (kode_matkul.upper(), nama_matkul.capitalize()))
             conn.commit()
             print(f"Mata kuliah {nama_matkul} berhasil ditambahkan!\n")
         
@@ -81,6 +83,125 @@ def view_mata_kuliah():
                 print("-" * 30)
         else:
             print("Tidak ada data mata kuliah.")
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
+def edit_mata_kuliah():
+    cursor = conn.cursor()
+    print("\n=== Edit Mata Kuliah ===")
+
+    try:
+        # Tampilkan data mata kuliah yang sudah ada
+        cursor.execute("SELECT kode_matkul, nama_matkul FROM mata_kuliah ORDER BY kode_matkul")
+        mata_kuliah_list = cursor.fetchall()
+
+        if mata_kuliah_list:
+            print("\nMata Kuliah yang Tersedia:")
+            print("-" * 40)
+            print(f"{'Kode Mata Kuliah':<15} {'Nama Mata Kuliah':<20}")
+            print("-" * 40)
+            for kode, nama in mata_kuliah_list:
+                print(f"{kode:<15} {nama:<20}")
+            print("-" * 40)
+        else:
+            print("\nBelum ada mata kuliah yang terdaftar.")
+
+        while True:
+            kode_matkul = input("Masukkan Kode Mata Kuliah yang akan diedit (tekan Enter untuk kembali): ").strip()
+            if not kode_matkul:  # Jika input kosong, berhenti
+                break
+
+            # Periksa apakah kode mata kuliah ada di database
+            cursor.execute("SELECT nama_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+            mata_kuliah = cursor.fetchone()
+
+            if not mata_kuliah:
+                print("Kode mata kuliah tidak ditemukan. Silakan coba lagi.")
+                continue
+
+            print(f"Mata kuliah saat ini: {mata_kuliah[0]}")
+
+            # Input kode mata kuliah baru
+            kode_baru = input("Masukkan Kode Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip()
+
+            if kode_baru:
+                # Periksa apakah kode baru sudah digunakan
+                cursor.execute("SELECT kode_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_baru.upper(),))
+                if cursor.fetchone():
+                    print("Kode mata kuliah baru sudah digunakan. Silakan coba lagi.")
+                    continue
+
+            # Input nama mata kuliah baru
+            nama_baru = input("Masukkan Nama Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip()
+
+            # Update data di database
+            if kode_baru:
+                cursor.execute("UPDATE mata_kuliah SET kode_matkul = %s WHERE kode_matkul = %s", (kode_baru.upper(), kode_matkul.upper()))
+                kode_matkul = kode_baru  # Perbarui kode untuk proses berikutnya
+
+            if nama_baru:
+                cursor.execute("UPDATE mata_kuliah SET nama_matkul = %s WHERE kode_matkul = %s", (nama_baru.capitalize(), kode_matkul.upper()))
+
+            conn.commit()
+
+            print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil diperbarui!\n")
+
+        print("Proses pengeditan mata kuliah selesai.")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
+def delete_mata_kuliah():
+    cursor = conn.cursor()
+    print("\n=== Hapus Mata Kuliah ===")
+
+    try:
+        # Tampilkan data mata kuliah yang sudah ada
+        cursor.execute("SELECT kode_matkul, nama_matkul FROM mata_kuliah ORDER BY kode_matkul")
+        mata_kuliah_list = cursor.fetchall()
+
+        if mata_kuliah_list:
+            print("\nMata Kuliah yang Tersedia:")
+            print("-" * 40)
+            print(f"{'Kode Mata Kuliah':<15} {'Nama Mata Kuliah':<20}")
+            print("-" * 40)
+            for kode, nama in mata_kuliah_list:
+                print(f"{kode:<15} {nama:<20}")
+            print("-" * 40)
+        else:
+            print("\nBelum ada mata kuliah yang terdaftar.")
+            return
+
+        while True:
+            kode_matkul = input("Masukkan Kode Mata Kuliah yang akan dihapus (tekan Enter untuk kembali): ").strip()
+            if not kode_matkul:  # Jika input kosong, berhenti
+                break
+
+            # Periksa apakah kode mata kuliah ada di database
+            cursor.execute("SELECT nama_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+            mata_kuliah = cursor.fetchone()
+
+            if not mata_kuliah:
+                print("Kode mata kuliah tidak ditemukan. Silakan coba lagi.")
+                continue
+
+            # Konfirmasi penghapusan
+            konfirmasi = input(f"Apakah Anda yakin ingin menghapus mata kuliah '{mata_kuliah[0]}'? (y/n): ").strip().lower()
+            if konfirmasi == 'y':
+                cursor.execute("DELETE FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+                conn.commit()
+                print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil dihapus!\n")
+            elif konfirmasi == 'n':
+                print("Penghapusan dibatalkan.")
+            else:
+                print("Input tidak valid. Silakan coba lagi.")
+
+        print("Proses penghapusan mata kuliah selesai.")
+
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
     finally:
@@ -658,7 +779,15 @@ def proses_pengajuan_kelas():
     
         # Input ID pengajuan yang akan diproses
         while True:
-            id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
+            id_pesanan = input("Masukkan ID Pengajuan yang akan diproses (Tekan 'Enter' untuk kembali): ").strip()
+
+            if id_pesanan == '':
+                print("Kembali ke menu utama...")
+                return  
+
+            if not id_pesanan.isdigit(): # agar hanya menerima input angka
+                print("ID Transaksi harus berupa angka. Silakan coba lagi.")
+                continue
 
             # Periksa apakah ID Pengajuan valid
             cursor.execute(
@@ -698,21 +827,32 @@ def proses_pengajuan_kelas():
 
         while True:
             # Input keputusan dari admin
-            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak / '0' Batal): ").strip().upper()
+
+            if keputusan == '0':
+                print("Proses dibatalkan...")
+                return
 
             # Validasi keputusan
-            if keputusan.upper() not in ["Y", "N"]:
-                print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            else:
-                break
+            if keputusan not in ['Y', 'N', '0']:
+                print("Keputusan tidak valid. Gunakan 'Y', 'N', atau '0'.")
+                continue
+
+            # Input alasan, gunakan default '-' jika kosong
+            komentar = input("Masukkan alasan untuk keputusan (tekan Enter jika tidak ada): ").strip()
+            if not komentar:
+                komentar = "-"  # Isi default
+
+            print(f"Keputusan: {'ACC' if keputusan == 'Y' else 'Ditolak'} dengan alasan: {komentar}")
+            break
 
         # Tentukan status berdasarkan keputusan
         status = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
 
         # Update status transaksi berdasarkan keputusan
         cursor.execute(
-            "UPDATE transaksi SET status_transaksi = %s WHERE id_transaksi = %s",
-            (status, id_pesanan),
+            "UPDATE transaksi SET status_transaksi = %s, komentar = %s WHERE id_transaksi = %s",
+            (status, komentar, id_pesanan),
         )
         conn.commit()
 
@@ -809,24 +949,34 @@ def proses_pembatalan_kelas_admin():
         else:
             print("Tidak ada pembatalan yang ditemukan.")
 
-        # Input ID pengajuan pembatalan yang akan diproses
-        id_transaksi = input("Masukkan ID transaksi yang akan diproses: ").strip()
-        
-        # Periksa apakah ID pembatalan valid
-        cursor.execute(
-            """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
-                   detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
-                   detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
-            FROM transaksi
-            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
-            WHERE transaksi.id_transaksi = %s
-            """, (id_transaksi,))
-        pembatalan = cursor.fetchone()
-         
-        if pembatalan is None or pembatalan[5] != StatusTransaksi.PEMBATALAN_PENDING.value:
-            print("ID Pembatalan tidak valid atau status tidak sesuai.")
-            return  
+        while True:
+            # Input ID pengajuan pembatalan yang akan diproses
+            id_transaksi = input("Masukkan ID transaksi yang akan diproses (Tekan 'Enter' untuk kembali): ").strip()
+            
+            if id_transaksi == "":
+                print("Kembali ke menu utama.")
+                return
+
+            if not id_transaksi.isdigit(): # agar hanya menerima input angka
+                print("ID Transaksi harus berupa angka. Silakan coba lagi.")
+                continue
+
+            # Periksa apakah ID pembatalan valid
+            cursor.execute(
+                """
+                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
+                    detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
+                    detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+                FROM transaksi
+                INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+                WHERE transaksi.id_transaksi = %s
+                """, (id_transaksi,))
+            pembatalan = cursor.fetchone()
+            
+            if pembatalan is None or pembatalan[10] != StatusTransaksi.PEMBATALAN_PENDING.value:
+                print("ID Pembatalan tidak ditemukan, silahkan cek kembali.")
+            else:
+                break
 
         # Tampilkan detail pengajuan pembatalan kelas
         table = PrettyTable()
@@ -849,19 +999,27 @@ def proses_pembatalan_kelas_admin():
         print("\nDetail Pembatalan:")
         print(table)
 
-        # Input keputusan dan alasannya dari admin
-        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
-        komentar = str(input("Alasan di ACC atau ditolak: ")).strip()
+        while True:
+            # Input keputusan dari admin
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak / '0' Batal): ").strip().upper()
 
-        # kosongin kalau ga ada komentar
-        if len(komentar) <= 0:
-            komentar = "Tidak ada"
+            if keputusan == '0':
+                print("Proses dibatalkan...")
+                return
 
-        #Validasi keputusan
-        if keputusan.upper() not in ['Y', 'N']:
-            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            return
-        
+            # Validasi keputusan
+            if keputusan not in ['Y', 'N', '0']:
+                print("Keputusan tidak valid. Gunakan 'Y', 'N', atau '0'.")
+                continue
+
+            # Input alasan, gunakan default '-' jika kosong
+            komentar = input("Masukkan alasan untuk keputusan (tekan Enter jika tidak ada): ").strip()
+            if not komentar:
+                komentar = "-"  # Isi default
+
+            print(f"Keputusan: {'ACC' if keputusan == 'Y' else 'Ditolak'} dengan alasan: {komentar}")
+            break
+
         # proses berdasarkan keputusan admin
         status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
 
@@ -934,21 +1092,31 @@ def proses_pembatalan_kelas_mandiri():
         else:
             print("Tidak ada pembatalan yang ditemukan.")
 
-        # Input ID pengajuan pembatalan yang akan diproses
-        id_pengajuan = input("Masukkan ID transaksi yang akan diproses: ").strip()
-        
-        # Periksa apakah ID pembatalan valid
-        cursor.execute(
-            """
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
-                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
-            FROM pengajuan WHERE id_pengajuan = %s
-            """, (id_pengajuan,))
-        pembatalan = cursor.fetchone()
-         
-        if pembatalan is None or pembatalan[10] != StatusTransaksi.PEMBATALAN_PENDING.value:
-            print("ID Pengajuan tidak valid atau status tidak sesuai.")
-            return  
+        while True:
+            # Input ID pengajuan pembatalan yang akan diproses
+            id_pengajuan = input("Masukkan ID transaksi yang akan diproses (Tekan 'Enter' untuk kembali): ").strip()
+            
+            if id_pengajuan == '':
+                print("Kembali ke menu utama...")
+                return
+
+            if not id_pengajuan.isdigit(): # agar hanya menerima input angka
+                print("ID Transaksi harus berupa angka. Silakan coba lagi.")
+                continue
+
+            # Periksa apakah ID pembatalan valid
+            cursor.execute(
+                """
+                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                        jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+                FROM pengajuan WHERE id_pengajuan = %s
+                """, (id_pengajuan,))
+            pembatalan = cursor.fetchone()
+            
+            if pembatalan is None or pembatalan[10] != StatusTransaksi.PEMBATALAN_PENDING.value:
+                print("ID Pembatalan tidak ditemukan, silahkan cek kembali.")
+            else:
+                break
 
         # Tampilkan detail pengajuan pembatalan kelas
         table = PrettyTable()
@@ -971,19 +1139,27 @@ def proses_pembatalan_kelas_mandiri():
         print("\nDetail Pembatalan:")
         print(table)
 
-        # Input keputusan dan alasannya dari admin
-        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
-        komentar = str(input("Alasan di ACC atau ditolak: ")).strip()
+        while True:
+            # Input keputusan dari admin
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak / '0' Batal): ").strip().upper()
 
-        # kosongin kalau ga ada komentar
-        if len(komentar) <= 0:
-            komentar = "Tidak ada"
+            if keputusan == '0':
+                print("Proses dibatalkan...")
+                return
 
-        #Validasi keputusan
-        if keputusan.upper() not in ['Y', 'N']:
-            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            return
-        
+            # Validasi keputusan
+            if keputusan not in ['Y', 'N', '0']:
+                print("Keputusan tidak valid. Gunakan 'Y', 'N', atau '0'.")
+                continue
+
+            # Input alasan, gunakan default '-' jika kosong
+            komentar = input("Masukkan alasan untuk keputusan (tekan Enter jika tidak ada): ").strip()
+            if not komentar:
+                komentar = "-"  # Isi default
+
+            print(f"Keputusan: {'ACC' if keputusan == 'Y' else 'Ditolak'} dengan alasan: {komentar}")
+            break
+
         # proses berdasarkan keputusan admin
         status = StatusTransaksi.ACC_PEMBATALAN.value if keputusan.upper() == "Y" else StatusTransaksi.PEMBATALAN_DITOLAK.value
 
@@ -1042,7 +1218,15 @@ def proses_pengajuan_mandiri():
             print("="*40)
 
         while True:
-            id_pengajuan = input("\nMasukkan ID pengajuan yang ingin diproses: ")
+            id_pengajuan = input("\nMasukkan ID pengajuan yang ingin diproses (Tekan 'Enter' untuk kembali): ")
+            
+            if id_pengajuan == '':
+                print("Kembali ke menu utama...")
+                return
+
+            if not id_pengajuan.isdigit(): # agar hanya menerima input angka
+                print("ID Transaksi harus berupa angka. Silakan coba lagi.")
+                continue
 
             cursor.execute("""
                 SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
@@ -1071,19 +1255,32 @@ def proses_pengajuan_mandiri():
         print("="*40)
 
         while True:
-            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+            # Input keputusan dari admin
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak / '0' Batal): ").strip().upper()
 
-            if keputusan.upper() not in ['Y', 'N']:
-                print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            else:
-                break
+            if keputusan == '0':
+                print("Proses dibatalkan...")
+                return
+
+            # Validasi keputusan
+            if keputusan not in ['Y', 'N', '0']:
+                print("Keputusan tidak valid. Gunakan 'Y', 'N', atau '0'.")
+                continue
+
+            # Input alasan, gunakan default '-' jika kosong
+            komentar = input("Masukkan alasan untuk keputusan (tekan Enter jika tidak ada): ").strip()
+            if not komentar:
+                komentar = "-"  # Isi default
+
+            print(f"Keputusan: {'ACC' if keputusan == 'Y' else 'Ditolak'} dengan alasan: {komentar}")
+            break
         
         status_pengajuan = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
 
         # Update status pengajuan berdasarkan keputusan
         cursor.execute(
-            "UPDATE pengajuan SET status_pengajuan = %s WHERE id_pengajuan = %s",
-            (status_pengajuan, id_pengajuan),
+            "UPDATE pengajuan SET status_pengajuan = %s, komentar = %s WHERE id_pengajuan = %s",
+            (status_pengajuan, komentar, id_pengajuan),
         )
         conn.commit()
         print(f"Pengajuan ID {id_pengajuan} telah diproses.")

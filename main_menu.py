@@ -2,7 +2,7 @@ import mysql.connector
 import os
 from main_features_admin import (
     add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_datakelas, proses_pengajuan_kelas,
-    input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen,
+    input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen, edit_mata_kuliah, delete_mata_kuliah,
     tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
 )
 from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, lihat_profil, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
@@ -27,23 +27,22 @@ def admin_menu():
         table.field_names = ["No", "Menu Admin"]
         table.add_row([1, "Lihat Pengajuan Kelas"])
         table.add_row([2, "Lihat Pengajuan Pembatalan Kelas"])
-        table.add_row([3, "Tambah Mata Kuliah"])
-        table.add_row([4, "Lihat Data Mata Kuliah"])
-        table.add_row([5, "Tambah Data Dosen"])
-        table.add_row([6, "Lihat Data Dosen"])
-        table.add_row([7, "Input Jadwal Kosong Dosen"])
-        table.add_row([8, "Lihat Jadwal Kosong Seluruh Dosen"])
-        table.add_row([9, "Edit Jadwal Kosong Dosen"])
-        table.add_row([10, "Tambah Ruang Kelas"])
-        table.add_row([11, "Lihat Data Ruang Kelas"])
-        table.add_row([12, "Buat Kelas Baru"])
-        table.add_row([13, "Edit Kelas"])
-        table.add_row([14, "Lihat Kelas yang Telah Dibuat"])
-        table.add_row([15, "Logout"])
+        table.add_row([3, "Mata Kuliah"])
+        table.add_row([4, "Tambah Data Dosen"])
+        table.add_row([5, "Lihat Data Dosen"])
+        table.add_row([6, "Input Jadwal Kosong Dosen"])
+        table.add_row([7, "Lihat Jadwal Kosong Seluruh Dosen"])
+        table.add_row([8, "Edit Jadwal Kosong Dosen"])
+        table.add_row([9, "Tambah Ruang Kelas"])
+        table.add_row([10, "Lihat Data Ruang Kelas"])
+        table.add_row([11, "Buat Kelas Baru"])
+        table.add_row([12, "Edit Kelas"])
+        table.add_row([13, "Lihat Kelas yang Telah Dibuat"])
+        table.add_row([14, "Logout"])
         print(table)
         
         choice = input("Pilih menu: ").strip()
-
+        
         if choice == '1':
             print("1. Request Booking Kelas")
             print("2. Lihat Pengajuan Mandiri")
@@ -83,30 +82,53 @@ def admin_menu():
                     print("Pilih sesuai menu 1/2/0!")                    
             
         elif choice == '3':
-            add_mata_kuliah()
+            print("1. Lihat Data Mata Kuliah")
+            print("2. Tambah Mata Kuliah")
+            print("3. Edit Mata Kuliah")
+            print("4. Hapus Mata Kuliah")
+            print("0. Kembali ke Menu Utama")
+
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/3/4/0): ").strip()
+                if choices == '1':
+                    view_mata_kuliah()
+                    break
+                elif choices == '2':
+                    add_mata_kuliah()
+                    break
+                elif choices == '3':
+                    edit_mata_kuliah()
+                    break
+                elif choices == '4':
+                    delete_mata_kuliah()
+                    break
+                elif choices == '0':
+                    admin_menu()
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/3/4/0!")  
+
         elif choice == '4':
-            view_mata_kuliah()
-        elif choice == '5':
             add_dosen()
-        elif choice == '6':
+        elif choice == '5':
             view_dosen()
-        elif choice == '7':
+        elif choice == '6':
             input_jadwal_dosen()
-        elif choice == '8':
+        elif choice == '7':
             view_jadwal_dosen()
-        elif choice == '9':
+        elif choice == '8':
             edit_jadwal_dosen()
-        elif choice == '10':
+        elif choice == '9':
             add_ruang_kelas()
-        elif choice == '11':
+        elif choice == '10':
             view_datakelas()
-        elif choice == '12':
+        elif choice == '11':
             buat_kelas()
-        elif choice == '13':
+        elif choice == '12':
             edit_kelas()
-        elif choice == '14':
+        elif choice == '13':
             tampilkan_kelas()
-        elif choice == '15':
+        elif choice == '14':
             print("Logout berhasil! Sampai jumpa lagi.")
             break # Keluar dari menu admin setelah logout
         else:

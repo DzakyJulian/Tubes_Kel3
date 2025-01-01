@@ -696,13 +696,15 @@ def proses_pengajuan_kelas():
         print("\nDetail Pengajuan:")
         print(table)
 
-        # Input keputusan dari admin
-        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+        while True:
+            # Input keputusan dari admin
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
 
-        # Validasi keputusan
-        if keputusan.upper() not in ["Y", "N"]:
-            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            return
+            # Validasi keputusan
+            if keputusan.upper() not in ["Y", "N"]:
+                print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            else:
+                break
 
         # Tentukan status berdasarkan keputusan
         status = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
@@ -1039,18 +1041,20 @@ def proses_pengajuan_mandiri():
             print(f"Status Pengajuan   : {data[10]}")
             print("="*40)
 
-        id_pengajuan = int(input("\nMasukkan ID pengajuan yang ingin diproses: "))
+        while True:
+            id_pengajuan = input("\nMasukkan ID pengajuan yang ingin diproses: ")
 
-        cursor.execute("""
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
-                    jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
-            FROM pengajuan WHERE id_pengajuan = %s
-        """, (id_pengajuan,))
-        detail = cursor.fetchone()
+            cursor.execute("""
+                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                        jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
+                FROM pengajuan WHERE id_pengajuan = %s
+            """, (id_pengajuan,))
+            detail = cursor.fetchone()
 
-        if not detail:
-            print("Tidak ada pengajuan yang perlu diproses.")
-            return
+            if not detail:
+                print("ID tidak ditemukan, silahkan cek kembali.")
+            else:
+                break
         
         # Daftar pengajuan yang perlu diproses
         print(f"\n===== Detail Pengajuan ID {id_pengajuan} =====")
@@ -1066,11 +1070,13 @@ def proses_pengajuan_mandiri():
         print(f"Status Pengajuan   : {detail[10]}")
         print("="*40)
 
-        keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
+        while True:
+            keputusan = input("Masukkan keputusan ('Y' ACC / 'N' Ditolak): ").strip()
 
-        if keputusan.upper() not in ['Y', 'N']:
-            print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
-            return
+            if keputusan.upper() not in ['Y', 'N']:
+                print("Keputusan tidak valid. Gunakan 'Y' atau 'N'.")
+            else:
+                break
         
         status_pengajuan = 'ACC Pengajuan' if keputusan.upper() == 'Y' else 'Pengajuan Ditolak'
 

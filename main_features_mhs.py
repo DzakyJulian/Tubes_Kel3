@@ -200,15 +200,15 @@ def batal_kelas(nim):
         if id_transaksi == '0':
             return
 
-        # Verifikasi ID Transaksi yang dipilih
-        cursor.execute('''
-            SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s
-        ''', (id_transaksi, nim))
-        transaksi_terpilih = cursor.fetchone()
-        status_transaksi_terpilih = transaksi_terpilih[5]
-
-        if transaksi_terpilih is None:
-            print("ID Transaksi tidak ditemukan.")
+        try:
+            # Verifikasi ID Transaksi yang dipilih
+            cursor.execute('''
+                SELECT * FROM transaksi WHERE id_transaksi = %s AND nim = %s
+            ''', (id_transaksi, nim))
+            transaksi_terpilih = cursor.fetchone()
+            status_transaksi_terpilih = transaksi_terpilih[5]
+        except:
+            print("ID transaksi tidak ditemukan atau terjadi kesalahan.")
             return
 
         # Proses konfirmasi pembatalan

@@ -657,25 +657,27 @@ def proses_pengajuan_kelas():
             print("Tidak ada pengajuan yang ditemukan.")
     
         # Input ID pengajuan yang akan diproses
-        id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
+        while True:
+            id_pesanan = input("Masukkan ID Pengajuan yang akan diproses: ").strip()
 
-        # Periksa apakah ID Pengajuan valid
-        cursor.execute(
-            """
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
-                   detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
-                   transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
-            FROM transaksi
-            INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
-            WHERE transaksi.id_transaksi = %s
-            """,
-            (id_pesanan,)
-        )
-        pesanan = cursor.fetchone()  # Pastikan hanya mengambil satu hasil
+            # Periksa apakah ID Pengajuan valid
+            cursor.execute(
+                """
+                SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
+                       detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                       transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
+                FROM transaksi
+                INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
+                WHERE transaksi.id_transaksi = %s
+                """,
+                (id_pesanan,)
+            )
+            pesanan = cursor.fetchone()  # Pastikan hanya mengambil satu hasil
 
-        if pesanan is None:
-            print("ID Pengajuan tidak ditemukan.")
-            return
+            if pesanan:
+                break  # Keluar dari loop jika ID valid
+            else:
+                print("ID Pengajuan tidak ditemukan. Silakan coba lagi.")
         
         table = PrettyTable()
         table.field_names = ["Detail", "Value"]

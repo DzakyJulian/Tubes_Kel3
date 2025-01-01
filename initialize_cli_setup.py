@@ -17,14 +17,15 @@ import os
 
 os.system("cls")
 while True:
+    print("")
     print("=== Initialize CLI setup for E-Booking Class ===")
     main_table = PrettyTable()
     main_table.align = "l"
     main_table.field_names = ["No", "Action"]
-    main_table.add_row(["1", "Ganti password MySQL"])
-    main_table.add_row(["2", "Buat database baru beserta tabelnya"])
-    main_table.add_row(["3", "Isi database dengan data dummy"])
-    main_table.add_row(["4", "Hapus database"])
+    main_table.add_row(["1", "Ganti Password MySQL"])
+    main_table.add_row(["2", "Buat Database Baru beserta Tabelnya"])
+    main_table.add_row(["3", "Isi Database dengan Data Dummy"])
+    main_table.add_row(["4", "Hapus Database"])
     main_table.add_row(["0", "Exit"])
     print(main_table)
     

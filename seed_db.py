@@ -1,59 +1,69 @@
 import mysql.connector
 from admin_db_info import get_current_mysql_password
 
-# Koneksi ke database MySQL
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password=get_current_mysql_password(),
-)
-
-cursor = conn.cursor()
-
 def seed_database():
-    # Mengecek apakah database sudah ada
-    cursor.execute("SHOW DATABASES")
-    databases = cursor.fetchall()
-    
-    db_exists = False
-    for db in databases:
-        if db[0] == 'ebookingclass':
-            db_exists = True
-            break
+    try:
+        # Koneksi ke database MySQL
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password=get_current_mysql_password(),
+            database="ebookingclass"
+        )
         
-    if db_exists == True:
-        try:
-            insert_user = cursor.execute("""
-            INSERT INTO `ebookingclass`.`users` (`nim`, `email`, `password`, `user_role`) VALUES
+        cursor = conn.cursor()
+        
+        # INSERT USER
+        insert_users_query = """
+        INSERT INTO users (nim, email, password, user_role)
+        VALUES (%s, %s, %s, %s)
+        """
+        users_data = [
             (2400000, 'johnd@gmail.com', '$2b$12$mB8kymUHuLwU0S5aLuUdsORwM0dJhKFVr3rsAzhGSmxmjCq4KIL2W', 'mahasiswa'),
+            (2400001, 'jonas@gmail.com', '$2b$12$VE/75MjBk8Xy7koUk0OjTuBYZG7uQmLG50ElXQwfN/3xwHh5R8YEi', 'admin'),
             (2400790, 'tes@gmail.com', '$2b$12$m7FTJcv5De6DnjOVYLym/uoBA6DnzkXz8DQ04dLkY8rl2aW8GwcVC', 'admin'),
-            (2400987, 'tes2@gmail.com', '$2b$12$jcfir8SzEkHiEC3YZPa8YOQo/D6OpU/xWqhB2dldm7PcAOoptQZJy', 'mahasiswa');
-            """)
-
-            insert_kelas = cursor.execute("""
-            INSERT INTO `ebookingclass`.`kelas` (`kode_kelas`, `informasi_kelas`) VALUES
+            (2400987, 'tes2@gmail.com', '$2b$12$jcfir8SzEkHiEC3YZPa8YOQo/D6OpU/xWqhB2dldm7PcAOoptQZJy', 'mahasiswa'),
+        ]
+        cursor.executemany(insert_users_query, users_data)
+        
+        # INSERT KELAS
+        insert_kelas_query = """
+        INSERT INTO kelas (kode_kelas, informasi_kelas)
+        VALUES (%s, %s)
+        """
+        kelas_data = [
             ('20.4A.03.011', 'Lab. Inovasi Teknologi dan Media Digital, Kantor Administrasi UPI Cibiru Lt. 3 Ruang 011'),
             ('20.4B.02.006', 'Gedung Baru Lt. 2 Ruang 006'),
             ('20.4B.02.007', 'Gedung Baru Lt. 2 Ruang 007'),
             ('20.4B.04.006', 'Gedung Baru Lt. 4 Ruang 006'),
             ('20.4B.05.000', 'Gedung Baru Lt. 5 Ruang 000'),
             ('20.4E.02.006', 'Lab.Kom RPL Gedung Perkuliahan Baru Cibiru Lt. 2 Ruang 006'),
-            ('20.4E.03.001', 'Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001');
-            """)
+            ('20.4E.03.001', 'Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001')
+        ]
+        cursor.executemany(insert_kelas_query, kelas_data)
 
-            insert_matkul = cursor.execute("""
-            INSERT INTO `ebookingclass`.`mata_kuliah` (`kode_matkul`, `nama_matkul`) VALUES
+        # INSERT MATKUL
+        insert_matkul_query = """
+        INSERT INTO mata_kuliah (kode_matkul, nama_matkul)
+        VALUES (%s, %s)
+        """
+        matkul_data = [
             ('KU100', 'Pendidikan Agama Islam'),
             ('KU106', 'Pendidikan Bahasa Indonesia'),
             ('KU110', 'Pendidikan Pancasila'),
             ('RL115', 'Literasi Teknologi Informasi dan Komunikasi'),
             ('RL116', 'Pengantar Rekayasa Perangkat Lunak'),
             ('RL117', 'Dasar Pemrograman'),
-            ('RL118', 'Matematika Dasar');
-            """)
-
-            insert_dosen = cursor.execute("""
-            INSERT INTO `ebookingclass`.`dosen` (`nip`, `nama`, `alamat`, `email`, `no_tlp`) VALUES
+            ('RL118', 'Matematika Dasar')
+        ]
+        cursor.executemany(insert_matkul_query, matkul_data)
+        
+        # INSERT DOSEN
+        insert_dosen_query = """
+        INSERT INTO dosen (nip, nama, alamat, email, no_tlp)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        dosen_data = [
             (10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'Cibiru 1', 'jaenuri@upi.edu', '082465387612'),
             (10002, 'Fully Rakhmayanti, M.Pd.', 'Cibiru 2', 'fully@upi.edu', '081245758912'),
             (10003, 'Yayang Furi Furnamasari, M.Pd.', 'Cibiru 3', 'yayang@upi.edu', '082165758921'),
@@ -62,15 +72,20 @@ def seed_database():
             (10006, 'Indira Syawanodya, S.Kom., M.Kom.', 'Cibiru 6', 'indira@upi.edu', '087812574562'),
             (10007, 'Fahmi Candra Permana, S.Si., M.T.', 'Cibiru 7', 'fahmi@upi.edu', '083287614981'),
             (10008, 'Asep Rudi Nurjaman, M.Pd.', 'Cibiru 8', 'asep@upi.edu', '089876895264'),
-            (10009, 'Raditya Muhammad, S.T.,MT.', 'Cibiru 9', 'raditya@upi.edu', '081276856524');
-            """)
+            (10009, 'Raditya Muhammad, S.T.,MT.', 'Cibiru 9', 'raditya@upi.edu', '081276856524'),
+        ]
+        cursor.executemany(insert_dosen_query, dosen_data)
 
-            insert_jadwal_dosen = cursor.execute("""
-            INSERT INTO `ebookingclass`.`jadwal_dosen` (id, nip, hari, jam_mulai, jam_selesai) VALUES
-            (6, 10001, 'Senin', '07:00:00', '12:00:00'),
-            (7, 10001, 'Selasa', '09:00:00', '14:00:00'),
-            (8, 10001, 'Rabu', '13:00:00', '15:00:00'),
-            (9, 10001, 'Kamis', '15:00:00', '17:00:00'),
+        # INSERT JADWAL DOSEN
+        insert_jadwaldosen_query = """
+        INSERT INTO jadwal_dosen (id, nip, hari, jam_mulai, jam_selesai)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        jadwaldosen_data = [
+            (6,  10001, 'Senin', '07:00:00', '12:00:00'),
+            (7,  10001, 'Selasa', '09:00:00', '14:00:00'),
+            (8,  10001, 'Rabu', '13:00:00', '15:00:00'),
+            (9,  10001, 'Kamis', '15:00:00', '17:00:00'),
             (10, 10001, 'Jumat', '09:00:00', '12:00:00'),
             (11, 10001, 'Sabtu', '15:00:00', '17:00:00'),
             (12, 10002, 'Senin', '09:00:00', '12:00:00'),
@@ -115,11 +130,16 @@ def seed_database():
             (51, 10009, 'Jumat', '09:00:00', '17:00:00'),
             (52, 10008, 'Rabu', '08:00:00', '12:00:00'),
             (53, 10002, 'Jumat', '10:00:00', '13:00:00'),
-            (54, 10003, 'Rabu', '13:00:00', '14:40:00');
-            """)
+            (54, 10003, 'Rabu', '13:00:00', '14:40:00'),
+        ]
+        cursor.executemany(insert_jadwaldosen_query, jadwaldosen_data)
 
-            insert_detail_kelas = cursor.execute("""
-            INSERT INTO `ebookingclass`.`detail_kelas` (id_detail_kelas, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, informasi_kelas, pengguna, status) VALUES
+        # INSERT DETAIL KELAS
+        insert_detailkelas_query = """
+        INSERT INTO detail_kelas (id_detail_kelas, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, informasi_kelas, pengguna, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        detail_kelas_data = [
             (17, '20.4B.02.007', 'KU100', 'Rabu', '08:40:00', '10:20:00', 10008, 'Gedung Baru Lt. 2 Ruang 007', 'RPL 1-A', 'Digunakan'),
             (18, '20.4B.05.000', 'KU106', 'Jumat', '10:20:00', '12:00:00', 10002, 'Gedung Baru Lt. 5 Ruang 000', 'RPL 1-A', 'Digunakan'),
             (19, '20.4B.02.007', 'KU110', 'Rabu', '13:00:00', '14:40:00', 10003, 'Gedung Baru Lt. 2 Ruang 007', 'RPL 1-A', 'Digunakan'),
@@ -136,25 +156,36 @@ def seed_database():
             (33, '20.4A.03.011', 'RL118', 'Jumat', '07:00:00', '10:20:00', 10009, 'Lab. Inovasi Teknologi dan Media Digital, Kantor Administrasi UPI Cibiru Lt. 3 Ruang 011', 'RPL 1-C', 'Digunakan'),
             (39, '20.4E.03.001', 'KU100', 'Senin', '07:00:00', '10:00:00', 10001, 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', '', 'Tersedia'),
             (40, '20.4E.03.001', 'KU100', 'Selasa', '09:00:00', '12:00:00', 10001, 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', 'Digunakan'),
-            (41, '20.4E.03.001', 'KU100', 'Rabu', '13:00:00', '14:40:00', 10001, 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', '', 'Tersedia');
-            """)
+            (41, '20.4E.03.001', 'KU100', 'Rabu', '13:00:00', '14:40:00', 10001, 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', '', 'Tersedia'),
+        ]
+        cursor.executemany(insert_detailkelas_query, detail_kelas_data)
 
-            insert_transaksi = cursor.execute("""
-            INSERT INTO `ebookingclass`.`transaksi` (id_transaksi, id_detail_kelas, nim, email, tanggal_transaksi, status_transaksi, pengguna, komentar) VALUES
-            (9, 29, 2400987, 'tes2@gmail.com', '2024-12-25 10:35:28', 'Pengajuan Dibatalkan', 'RPL 1-C', NULL),
-            (10, 29, 2400987, 'tes2@gmail.com', '2024-12-25 10:36:04', 'ACC Pembatalan', 'RPL 1-C', NULL);
-            """)
+        # INSERT TRANSAKSI
+        insert_transaksi_query = """
+        INSERT INTO transaksi (id_transaksi, id_detail_kelas, nim, email, tanggal_transaksi, status_transaksi, pengguna, komentar)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        transaksi_data = [
+            (9,  29, 2400987, 'tes2@gmail.com', '2024-12-25 10:35:28', 'Pengajuan Dibatalkan', 'RPL 1-C', ''),
+            (10, 29, 2400987, 'tes2@gmail.com', '2024-12-25 10:36:04', 'ACC Pembatalan', 'RPL 1-C', '')
+        ]
+        cursor.executemany(insert_transaksi_query, transaksi_data)
 
-            insert_pengajuan = cursor.execute("""
-            INSERT INTO `ebookingclass`.`pengajuan` (id_pengajuan, id_detail_kelas, nim, email, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, nama_dosen, informasi_kelas, pengguna, tgl_pengajuan, status_pengajuan, komentar) VALUES
-            (8, 39, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Senin', '07:00:00', '10:00:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 15:44:29', 'ACC Pembatalan', 'acc'),
-            (9, 40, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Selasa', '09:00:00', '12:00:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 15:57:09', 'ACC Pengajuan', ''),
-            (10, 41, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Rabu', '13:00:00', '14:40:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 16:00:59', 'ACC Pembatalan', 'acc');
-            """)
+        # INSERT PENGAJUAN
+        insert_pengajuan_query = """
+        INSERT INTO pengajuan (id_pengajuan, id_detail_kelas, nim, email, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, nama_dosen, informasi_kelas, pengguna, tgl_pengajuan, status_pengajuan, komentar) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        pengajuan_data = [
+            (8,   39, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Senin', '07:00:00', '10:00:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 15:44:29', 'ACC Pembatalan', 'acc'),
+            (9,   40, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Selasa', '09:00:00', '12:00:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 15:57:09', 'ACC Pengajuan', ''),
+            (10,  41, 2400987, 'tes2@gmail.com', '20.4E.03.001', 'KU100', 'Rabu', '13:00:00', '14:40:00', 10001, 'Dr. Jaenuri,S.Ag,M.Pd.', 'RPL 1-C [ 2 SKS ]Gedung Perkuliahan Baru Cibiru Lt. 3 Ruang 001', 'RPL 1-C', '2024-12-29 16:00:59', 'ACC Pembatalan', 'acc'),
+        ]
+        cursor.executemany(insert_pengajuan_query, pengajuan_data)
 
-            print("\nSeeding database telah selesai.")
-            
-        except mysql.connector.Error as err:
-            print(f"Terjadi suatu masalah: {err}")
-    else :
-        print("Terjadi suatu masalah. Database sudah dihapus atau tidak ada.")
+        conn.commit()
+
+        print("\nSeeding database telah selesai.")
+        
+    except mysql.connector.Error as err:
+        print(f"Terjadi suatu masalah: {err}")

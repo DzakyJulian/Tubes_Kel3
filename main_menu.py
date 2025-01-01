@@ -26,70 +26,89 @@ def admin_menu():
         table = PrettyTable()
         table.field_names = ["No", "Menu Admin"]
         table.add_row([1, "Lihat Pengajuan Kelas"])
-        table.add_row([2, "Lihat Pengajuan Kelas Mahasiswa"])
-        table.add_row([3, "Lihat Pengajuan Pembatalan Kelas"])
-        table.add_row([4, "Tambah Mata Kuliah"])
-        table.add_row([5, "Lihat Data Mata Kuliah"])
-        table.add_row([6, "Tambah Data Dosen"])
-        table.add_row([7, "Lihat Data Dosen"])
-        table.add_row([8, "Input Jadwal Kosong Dosen"])
-        table.add_row([9, "Lihat Jadwal Kosong Seluruh Dosen"])
-        table.add_row([10, "Edit Jadwal Kosong Dosen"])
-        table.add_row([11, "Tambah Ruang Kelas"])
-        table.add_row([12, "Lihat Data Ruang Kelas"])
-        table.add_row([13, "Buat Kelas Baru"])
-        table.add_row([14, "Edit Kelas"])
-        table.add_row([15, "Lihat Kelas yang Telah Dibuat"])
-        table.add_row([16, "Logout"])
+        table.add_row([2, "Lihat Pengajuan Pembatalan Kelas"])
+        table.add_row([3, "Tambah Mata Kuliah"])
+        table.add_row([4, "Lihat Data Mata Kuliah"])
+        table.add_row([5, "Tambah Data Dosen"])
+        table.add_row([6, "Lihat Data Dosen"])
+        table.add_row([7, "Input Jadwal Kosong Dosen"])
+        table.add_row([8, "Lihat Jadwal Kosong Seluruh Dosen"])
+        table.add_row([9, "Edit Jadwal Kosong Dosen"])
+        table.add_row([10, "Tambah Ruang Kelas"])
+        table.add_row([11, "Lihat Data Ruang Kelas"])
+        table.add_row([12, "Buat Kelas Baru"])
+        table.add_row([13, "Edit Kelas"])
+        table.add_row([14, "Lihat Kelas yang Telah Dibuat"])
+        table.add_row([15, "Logout"])
         print(table)
         
         choice = input("Pilih menu: ").strip()
 
         if choice == '1':
-            proses_pengajuan_kelas()
+            print("1. Request Booking Kelas")
+            print("2. Lihat Pengajuan Mandiri")
+            print("0. Kembali ke Menu Utama") 
+            
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/0): ").strip()
+                if choices == '1':
+                    proses_pengajuan_kelas()
+                    break
+                elif choices == '2':
+                    proses_pengajuan_mandiri()
+                    break
+                elif choices == '0':
+                    admin_menu()
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/0!")
+            
         elif choice == '2':
-            proses_pengajuan_mandiri()
-        elif choice == '3':
             print("1. Batalkan Kelas")
             print("2. Batalkan Pengajuan Kelas Mandiri")
-            print("0. Kembali ke Menu Utama") 
-            choices = input("Masukkan pilihan (1/2/0): ").strip()
-            if choices == '1':
-                proses_pembatalan_kelas_admin()
-            elif choices == '2':
-                proses_pembatalan_kelas_mandiri()
-            elif choices == '0':
-                admin_menu()
-            else:
-                print("Pilih sesuai menu 1/2/0!")
-                return
-        elif choice == '4':
+            print("0. Kembali ke Menu Utama")
+
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/0): ").strip()
+                if choices == '1':
+                    proses_pembatalan_kelas_admin()
+                    break
+                elif choices == '2':
+                    proses_pembatalan_kelas_mandiri()
+                    break
+                elif choices == '0':
+                    admin_menu()
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/0!")                    
+            
+        elif choice == '3':
             add_mata_kuliah()
-        elif choice == '5':
+        elif choice == '4':
             view_mata_kuliah()
-        elif choice == '6':
+        elif choice == '5':
             add_dosen()
-        elif choice == '7':
+        elif choice == '6':
             view_dosen()
-        elif choice == '8':
+        elif choice == '7':
             input_jadwal_dosen()
-        elif choice == '9':
+        elif choice == '8':
             view_jadwal_dosen()
-        elif choice == '10':
+        elif choice == '9':
             edit_jadwal_dosen()
-        elif choice == '11':
+        elif choice == '10':
             add_ruang_kelas()
-        elif choice == '12':
+        elif choice == '11':
             view_datakelas()
-        elif choice == '13':
+        elif choice == '12':
             buat_kelas()
-        elif choice == '14':
+        elif choice == '13':
             edit_kelas()
-        elif choice == '15':
+        elif choice == '14':
             tampilkan_kelas()
-        elif choice == '16':
+        elif choice == '15':
             print("Logout berhasil! Sampai jumpa lagi.")
-            break  # Keluar dari menu admin setelah logout
+            break # Keluar dari menu admin setelah logout
         else:
             print("Pilihan tidak valid! Silakan pilih menu dari 1 sampai 15.")
 
@@ -118,22 +137,28 @@ def mahasiswa_menu(nim, email):
             print("1. Pengajuan Kelas")
             print("2. Pengajuan Kelas Mandiri")
             print("0. Kembali ke Menu Utama") 
-            choices = input("Masukkan pilihan (1/2/0): ").strip()
-            if choices == '1':
-                lihat_pesanan_kelas(nim)
-            elif choices == '2':
-                lihat_pesanan_mandiri(nim)
-            elif choices == '0':
-                mahasiswa_menu(nim, email)
-            else:
-                print("Pilih sesuai menu 1/2/0!")
-                return   
-        elif pilihan == '5':
+
             while True:
-                print("1. Batalkan Kelas")
-                print("2. Batalkan Pengajuan Kelas Mandiri")
-                print("0. Kembali ke Menu Utama") 
-                choices = input("Masukkan pilihan (1/2/0): ").strip()
+                choices = input("\nMasukkan pilihan (1/2/0): ").strip()
+                if choices == '1':
+                    lihat_pesanan_kelas(nim)
+                    break
+                elif choices == '2':
+                    lihat_pesanan_mandiri(nim)
+                    break
+                elif choices == '0':
+                    mahasiswa_menu(nim, email)
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/0!")
+                
+        elif pilihan == '5':
+            print("1. Batalkan Kelas")
+            print("2. Batalkan Pengajuan Kelas Mandiri")
+            print("0. Kembali ke Menu Utama") 
+
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/0): ").strip()
                 if choices == '1':
                     batal_kelas(nim)
                     break
@@ -142,9 +167,10 @@ def mahasiswa_menu(nim, email):
                     break
                 elif choices == '0':
                     mahasiswa_menu(nim, email)
-                    break
+                    return
                 else:
                     print("Pilih sesuai menu 1/2/0!")
+
         elif pilihan == '6':
             lihat_profil(nim)
         elif pilihan == '7':

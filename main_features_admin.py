@@ -355,7 +355,8 @@ def input_jadwal_dosen():
                     print("Proses dibatalkan. Kembali ke input NIP.")
                     break  # Kembali ke input NIP
                 if not hari:
-                    break
+                    print("Hari tidak boleh kosong!")
+                    continue  # Minta input ulang jika hari kosong
 
                 jam_mulai = input("Masukkan jam mulai (format 24 jam, contoh: 08:00): ").strip()
                 if jam_mulai == '0':
@@ -366,12 +367,20 @@ def input_jadwal_dosen():
                     print("Proses dibatalkan. Kembali ke input NIP.")
                     break
 
+                # Validasi agar jam mulai tidak lebih dari jam selesai
+                if jam_mulai >= jam_selesai:
+                    print("Jam mulai harus lebih awal daripada jam selesai.")
+                    continue
+
+                # Menyimpan jadwal dosen
                 query = "INSERT INTO jadwal_dosen (nip, hari, jam_mulai, jam_selesai) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (nip, hari, jam_mulai, jam_selesai))
-            conn.commit()
-            print("Jadwal kosong dosen berhasil ditambahkan.")
+                conn.commit()  # Menyimpan data setelah setiap jadwal
+                print("Jadwal kosong dosen berhasil ditambahkan.")
+
         except Exception as e:
             print(f"Terjadi kesalahan: {e}")
+
 
 
 

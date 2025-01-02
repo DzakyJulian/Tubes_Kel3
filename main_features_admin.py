@@ -242,6 +242,11 @@ def add_dosen():
             alamat = input("Masukkan Alamat Dosen: ").strip()
             email = input("Masukkan Email Dosen: ").strip()
             no_telp = input("Masukkan No. Telepon Dosen: ").strip()
+            
+            # Validasi input tidak boleh kosong
+            if not nama or not alamat or not email or not no_telp:
+                print("Semua field harus diisi. Silakan coba lagi.\n")
+                continue
 
             # Query untuk menambahkan data ke tabel dosen
             query = """

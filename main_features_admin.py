@@ -41,7 +41,6 @@ def add_ruang_kelas():
                 print("Informasi kelas tidak boleh kosong. Silakan ulangi.\n")
                 continue
 
-            
             # Menambahkan data ke tabel kelas jika belum ada
             query = "INSERT INTO kelas (kode_kelas, informasi_kelas) VALUES (%s, %s)"
             cursor.execute(query, (kode_kelas, informasi_kelas))
@@ -128,11 +127,26 @@ def hapus_ruang_kelas():
                 print(f"Kode Kelas '{kode_kelas}' tidak ditemukan.\n")
                 continue
 
-            # Hapus data dari tabel kelas
-            query_delete = "DELETE FROM kelas WHERE kode_kelas = %s"
-            cursor.execute(query_delete, (kode_kelas,))
-            conn.commit()
-            print(f"Ruang kelas '{kode_kelas}' berhasil dihapus!\n")
+            # Tampilkan data yang akan dihapus untuk konfirmasi
+            print("\nData yang akan dihapus:")
+            print(f"Kode Kelas: {result[0]} | Nama Kelas: {result[1]}")
+        
+        while True:
+            konfirmasi = input("Apakah Anda yakin ingin menghapus data ini? ('Y'/'N'): ").strip().upper()
+
+            if konfirmasi == 'Y':
+                # Hapus data dari tabel kelas
+                query_delete = "DELETE FROM kelas WHERE kode_kelas = %s"
+                cursor.execute(query_delete, (kode_kelas,))
+                conn.commit()
+                print(f"Ruang kelas '{kode_kelas}' berhasil dihapus!\n")
+                break
+            elif konfirmasi == 'N':
+                print("Penghapusan dibatalkan.\n")
+                return
+            else:
+                print("Input tidak valid. Pilih 'Y' atau 'N'.\n")
+                continue
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
@@ -543,15 +557,21 @@ def hapus_dosen():
                 print(f"Dosen dengan kode dosen '{kode_dosen}' tidak ditemukan. Silakan masukkan kode_dosen yang valid.")
                 continue
             else:
-                konfirmasi = input(f"Apakah Anda yakin ingin menghapus data dosen dengan kode dosen '{kode_dosen}'? (y/n): ").strip().lower()
-                if konfirmasi == 'y':
-                    cursor.execute("DELETE FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
-                    conn.commit()
-                    print(f"Data dosen dengan kode dosen '{kode_dosen}' berhasil dihapus!\n")
-                    break
-                else:
-                    print("Penghapusan dibatalkan.")
-                    break
+                break
+        
+        while True:
+            konfirmasi = input(f"Apakah Anda yakin ingin menghapus data dosen dengan kode dosen '{kode_dosen}'? ('Y'/'N'): ").strip().upper()
+            if konfirmasi == 'Y':
+                cursor.execute("DELETE FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
+                conn.commit()
+                print(f"Data dosen dengan kode dosen '{kode_dosen}' berhasil dihapus!\n")
+                break
+            elif konfirmasi == 'N':
+                print("Penghapusan dibatalkan.")
+                break
+            else:
+                print("Pilihan tidak valid. Harap masukkan 'Y' atau 'N'.")
+                continue
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

@@ -1,4 +1,5 @@
 import mysql.connector
+import re
 from datetime import datetime
 from admin_db_info import get_current_mysql_password
 from enum import Enum
@@ -236,17 +237,44 @@ def add_dosen():
             if not nip:  # Hentikan jika input kosong
                 print("Proses penambahan data dosen selesai.\n")
                 break
+                      # Validasi jika NIP sudah ada
+            cursor.execute("SELECT * FROM dosen WHERE nip = %s", (nip,))
+            if cursor.fetchone():
+                print(f"NIP '{nip}' sudah terdaftar. Silakan masukkan NIP yang berbeda.")
+                continue
 
             # Input data lainnya
             nama = input("Masukkan Nama Dosen: ").strip()
-            alamat = input("Masukkan Alamat Dosen: ").strip()
-            email = input("Masukkan Email Dosen: ").strip()
-            no_telp = input("Masukkan No. Telepon Dosen: ").strip()
-            
-            # Validasi input tidak boleh kosong
-            if not nama or not alamat or not email or not no_telp:
-                print("Semua field harus diisi. Silakan coba lagi.\n")
+            if not nama:
+                print("Nama dosen tidak boleh kosong.")
                 continue
+
+            alamat = input("Masukkan Alamat Dosen: ").strip()
+            if not alamat:
+                print("Alamat dosen tidak boleh kosong.")
+                continue
+
+            # Validasi email
+            while True:
+                email = input("Masukkan Email Dosen: ").strip()
+                if not email:
+                    print("Email tidak boleh kosong.")
+                    continue
+                if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                    print("Email tidak valid. Harap periksa format email Anda.")
+                else:
+                    break
+
+            # Validasi nomor telepon
+            while True:
+                no_telp = input("Masukkan No. Telepon Dosen: ").strip()
+                if not no_telp:
+                    print("No. telepon tidak boleh kosong.")
+                    continue
+                if not re.match(r"^\d{10,15}$", no_telp):
+                    print("No. telepon tidak valid. Harap masukkan no. telepon yang benar (10-15 digit).")
+                else:
+                    break
 
             # Query untuk menambahkan data ke tabel dosen
             query = """

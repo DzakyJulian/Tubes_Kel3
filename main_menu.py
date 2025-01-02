@@ -1,9 +1,9 @@
 import mysql.connector
 import os
 from main_features_admin import (
-    add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_datakelas, proses_pengajuan_kelas, edit_dosen, hapus_dosen,
-    input_jadwal_dosen, buat_kelas, edit_jadwal_dosen, view_jadwal_dosen, edit_mata_kuliah, delete_mata_kuliah, hapus_jadwal_dosen,
-    tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
+    add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_data_ruangkelas, proses_pengajuan_kelas, edit_dosen, hapus_dosen,
+    input_jadwal_dosen, buat_kelas, hapus_kelas, edit_jadwal_dosen, view_jadwal_dosen, edit_mata_kuliah, delete_mata_kuliah, hapus_jadwal_dosen,
+    tampilkan_kelas, add_ruang_kelas, edit_ruang_kelas, hapus_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
 )
 from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, lihat_profil, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
 from register import register_mahasiswa, register_admin
@@ -30,12 +30,9 @@ def admin_menu():
         table.add_row([3, "Mata Kuliah"])
         table.add_row([4, "Data Dosen"])
         table.add_row([5, "Jadwal Dosen"])
-        table.add_row([6, "Tambah Ruang Kelas"])
-        table.add_row([7, "Lihat Data Ruang Kelas"])
-        table.add_row([8, "Buat Kelas Baru"])
-        table.add_row([9, "Edit Kelas"])
-        table.add_row([10, "Lihat Kelas yang Telah Dibuat"])
-        table.add_row([11, "Logout"])
+        table.add_row([6, "Ruang Kelas"])
+        table.add_row([7, "Perkelasan"])
+        table.add_row([8, "Logout"])
         print(table)
         
         choice = input("Pilih menu: ").strip()
@@ -158,17 +155,62 @@ def admin_menu():
                     return
                 else:
                     print("Pilih sesuai menu 1/2/3/4/0!")  
+
         elif choice == '6':
-            add_ruang_kelas()
+            print("1. Lihat Ruang Kelas")
+            print("2. Tambah Ruang Kelas")
+            print("3. Edit Ruang Kelas")
+            print("4. Hapus Ruang Kelas")
+            print("0. Kembali ke Menu Utama")
+
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/3/4/0): ").strip()
+                if choices == '1':
+                    view_data_ruangkelas()
+                    break
+                elif choices == '2':
+                    add_ruang_kelas()
+                    break
+                elif choices == '3':
+                    edit_ruang_kelas()
+                    break
+                elif choices == '4':
+                    hapus_ruang_kelas()
+                    break
+                elif choices == '0':
+                    admin_menu()
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/3/4/0!")
+
         elif choice == '7':
-            view_datakelas()
+            print("1. Lihat Kelas yang sudah dibuat")
+            print("2. Buat Kelas")
+            print("3. Edit Kelas")
+            print("4. Hapus Kelas")
+            print("0. Kembali ke Menu Utama")
+
+            while True:
+                choices = input("\nMasukkan pilihan (1/2/3/4/0): ").strip()
+                if choices == '1':
+                    tampilkan_kelas()
+                    break
+                elif choices == '2':
+                    buat_kelas()
+                    break
+                elif choices == '3':
+                    edit_kelas()
+                    break
+                elif choices == '4':
+                    hapus_kelas()
+                    break
+                elif choices == '0':
+                    admin_menu()
+                    return
+                else:
+                    print("Pilih sesuai menu 1/2/3/4/0!")
+
         elif choice == '8':
-            buat_kelas()
-        elif choice == '9':
-            edit_kelas()
-        elif choice == '10':
-            tampilkan_kelas()
-        elif choice == '11':
             print("Logout berhasil! Sampai jumpa lagi.")
             break # Keluar dari menu admin setelah logout
         else:

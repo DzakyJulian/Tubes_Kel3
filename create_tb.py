@@ -40,7 +40,7 @@ def create_table():
             hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu') NOT NULL,
             jam_mulai TIME NOT NULL,
             jam_selesai TIME NOT NULL,
-            FOREIGN KEY (nip) REFERENCES dosen(nip)
+            FOREIGN KEY (kode_dosen) REFERENCES dosen(kode_dosen)
         )''')
     
         # Tabel mata_kuliah
@@ -71,7 +71,7 @@ def create_table():
             pengguna VARCHAR(30) NULL,
             status ENUM('Tersedia', 'Digunakan') NOT NULL,
             FOREIGN KEY (kode_matkul) REFERENCES mata_kuliah(kode_matkul),
-            FOREIGN KEY (nip_dosen) REFERENCES dosen(nip),
+            FOREIGN KEY (kode_dosen) REFERENCES dosen(kode_dosen),
             FOREIGN KEY (kode_kelas) REFERENCES kelas(kode_kelas)
         )''')
     

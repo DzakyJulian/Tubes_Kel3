@@ -147,7 +147,7 @@ def mahasiswa_menu(nim, email):
         table.add_row([7, "Logout"])
         print(table)
         
-        pilihan = input("\nMasukkan pilihan (1-6): ").strip()
+        pilihan = input("\nMasukkan pilihan (1-7): ").strip()
 
         if pilihan == '1':
             tampilkan_kelas()

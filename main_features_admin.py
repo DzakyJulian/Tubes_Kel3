@@ -129,47 +129,53 @@ def edit_mata_kuliah():
             if not kode_matkul:  # Jika input kosong, berhenti
                 break
 
-            # Periksa apakah kode mata kuliah ada di database
-            cursor.execute("SELECT nama_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
-            mata_kuliah = cursor.fetchone()
+            try:
+                # Periksa apakah kode mata kuliah ada di database
+                cursor.execute("SELECT nama_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+                mata_kuliah = cursor.fetchone()
 
-            if not mata_kuliah:
-                print("Kode mata kuliah tidak ditemukan. Silakan coba lagi.")
-                continue
-
-            print(f"Mata kuliah saat ini: {mata_kuliah[0]}")
-
-            # Input kode mata kuliah baru
-            kode_baru = input("Masukkan Kode Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip()
-
-            if kode_baru:
-                # Periksa apakah kode baru sudah digunakan
-                cursor.execute("SELECT kode_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_baru.upper(),))
-                if cursor.fetchone():
-                    print("Kode mata kuliah baru sudah digunakan. Silakan coba lagi.")
+                if not mata_kuliah:
+                    print("Kode mata kuliah tidak ditemukan. Silakan coba lagi.")
                     continue
 
-            # Input nama mata kuliah baru
-            nama_baru = input("Masukkan Nama Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip()
+                print(f"Mata kuliah saat ini: {mata_kuliah[0]}")
 
-            # Update data di database
-            if kode_baru:
-                cursor.execute("UPDATE mata_kuliah SET kode_matkul = %s WHERE kode_matkul = %s", (kode_baru.upper(), kode_matkul.upper()))
-                kode_matkul = kode_baru  # Perbarui kode untuk proses berikutnya
+                # Input kode mata kuliah baru
+                while True:
+                    kode_baru = input("Masukkan Kode Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip().upper()
 
-            if nama_baru:
-                cursor.execute("UPDATE mata_kuliah SET nama_matkul = %s WHERE kode_matkul = %s", (nama_baru.capitalize(), kode_matkul.upper()))
+                    if not kode_baru:
+                        break  # Tidak mengubah kode
 
-            conn.commit()
+                    # Periksa apakah kode baru sudah digunakan
+                    cursor.execute("SELECT kode_matkul FROM mata_kuliah WHERE kode_matkul = %s", (kode_baru,))
+                    if cursor.fetchone():
+                        print("Kode mata kuliah baru sudah digunakan. Silakan coba lagi.")
+                    else:
+                        break
 
-            print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil diperbarui!\n")
+                # Input nama mata kuliah baru
+                nama_baru = input("Masukkan Nama Mata Kuliah Baru (tekan Enter untuk tidak mengubah): ").strip()
 
-        print("Proses pengeditan mata kuliah selesai.")
+                # Update data di database
+                if kode_baru:
+                    cursor.execute("UPDATE mata_kuliah SET kode_matkul = %s WHERE kode_matkul = %s", (kode_baru, kode_matkul.upper()))
+                    kode_matkul = kode_baru  # Perbarui kode untuk proses berikutnya
+
+                if nama_baru:
+                    cursor.execute("UPDATE mata_kuliah SET nama_matkul = %s WHERE kode_matkul = %s", (nama_baru.capitalize(), kode_matkul.upper()))
+
+                conn.commit()
+                print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil diperbarui!\n")
+
+            except mysql.connector.Error as err:
+                print(f"Terjadi kesalahan: {err}")
 
     except mysql.connector.Error as err:
-        print(f"Terjadi kesalahan: {err}")
-    finally:
-        cursor.close()
+            print(f"Terjadi kesalahan: {err}")
+    print("Proses pengeditan mata kuliah selesai.")
+
+    cursor.close()
 
 def delete_mata_kuliah():
     cursor = conn.cursor()

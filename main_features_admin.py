@@ -676,7 +676,7 @@ def view_jadwal_dosen():
                     print("Tidak ada jadwal kosong dosen.")
 
             elif choice == "2":  # Lihat jadwal berdasarkan kode_dosen
-                kode_dosen = input("Masukkan kode_dosen dosen: ").strip()
+                kode_dosen = input("Masukkan kode dosen: ").strip()
                 query_dosen = "SELECT nama FROM dosen WHERE kode_dosen = %s"
                 cursor.execute(query_dosen, (kode_dosen,))
                 result_dosen = cursor.fetchone()
@@ -821,22 +821,42 @@ def hapus_jadwal_dosen():
             id_jadwal, hari, jam_mulai, jam_selesai = jadwal[i]
             print(f"{i + 1}. Hari: {hari}, Jam: {jam_mulai} - {jam_selesai} (ID: {id_jadwal})")
 
-        pilihan = input("Masukkan nomor atau ID jadwal yang ingin dihapus (Ketik '0' untuk kembali): ").strip()
-        if pilihan == '0':
-            print("Proses dibatalkan.")
-            break
-
-        try:
-            id_jadwal = int(pilihan) if pilihan.isdigit() else None
-            if id_jadwal not in [jadwal[j][0] for j in range(len(jadwal))]:
-                print("Pilihan tidak valid. Silakan coba lagi.")
+        while True:
+            pilihan = input("Masukkan ID Jadwal Dosen yang ingin dihapus (Ketik '0' untuk kembali ke menu sebelumnya): ").strip()
+            if not pilihan:
+                print("ID tidak boleh kosong!")
                 continue
+            elif pilihan == '0':
+                print("Kembali ke menu sebelumnya...")
+                break
 
-            cursor.execute("DELETE FROM jadwal_dosen WHERE id = %s", (id_jadwal,))
-            conn.commit()
-            print("Jadwal berhasil dihapus.")
-        except Exception as e:
-            print(f"Terjadi kesalahan: {e}")
+            try:
+                cursor.execute("SELECT * FROM jadwal_dosen WHERE id = %s", (pilihan,))
+                jadwal_terpilih = cursor.fetchone()
+
+                if not jadwal_terpilih:
+                    print(f"Jadwal dosen tidak ditemukan. Silakan masukkan ID Jadwal yang valid.")
+                    continue
+            
+                hari, jam_mulai, jam_selesai = jadwal_terpilih[1], jadwal_terpilih[2], jadwal_terpilih[3]
+                print(f"\nAnda akan menghapus jadwal: Hari: {hari}, Jam: {jam_mulai} - {jam_selesai} (ID: {id_jadwal})")
+        
+                while True:
+                    konfirmasi = input(f"Apakah Anda yakin ingin menghapus jadwal dosen ini? ('Y'/'N'): ").strip().upper()
+                    if konfirmasi == 'Y':
+                        cursor.execute("DELETE FROM jadwal_dosen WHERE id = %s", (id_jadwal,))
+                        conn.commit()
+                        print(f"Jadwal dosen berhasil dihapus!\n")
+                        break
+                    elif konfirmasi == 'N':
+                        print("Penghapusan dibatalkan.")
+                        break
+                    else:
+                        print("Pilihan tidak valid. Harap masukkan 'Y' atau 'N'.")
+                        continue
+            except Exception as e:
+                print(f"Terjadi kesalahan: {e}")
+
 
 # Fungsi untuk membuat kelas berdasarkan jadwal kosong dosen
 def buat_kelas():

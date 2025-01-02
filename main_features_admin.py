@@ -371,6 +371,11 @@ def input_jadwal_dosen():
                 if hari == '0':
                     print("Proses dibatalkan. Kembali ke input NIP.")
                     break  # Kembali ke input NIP
+                if hari.lower() not in ['senin', 'selasa', 'rabu', 'kamis', 'jumat']:
+                    print("Hari tidak valid!.")
+
+
+                    continue
                 if not hari:
                     print("Hari tidak boleh kosong!")
                     continue  # Minta input ulang jika hari kosong

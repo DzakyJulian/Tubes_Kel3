@@ -2,6 +2,7 @@ import bcrypt
 import mysql.connector
 import random
 from admin_db_info import get_current_mysql_password
+from datetime import datetime
 
 # Koneksi ke database MySQL
 conn = mysql.connector.connect(
@@ -56,7 +57,10 @@ def register_admin():
     print("\n=== Register Admin ===")
 
     # Set value untuk NIM dengan angka acak
-    nim = f'24{str(random.randrange(0,99999,1))}'
+    # 2 digit pertama adalah 2 digit terakhir tahun sekarang
+    tahun_sekarang = datetime.now().year
+    dua_digit_terakhir = str(tahun_sekarang)[2:4]
+    nim = str(dua_digit_terakhir+str(random.randrange(0,99999,1)))
 
     # Advance validation for Email
     while True:

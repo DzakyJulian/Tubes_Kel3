@@ -46,23 +46,36 @@ def add_mata_kuliah():
     
     try:
         while True:
-            kode_matkul = input("Masukkan Kode Mata Kuliah Baru (tekan Enter untuk kembali): ").strip()
-            if not kode_matkul:  # Jika input kosong, berhenti
+            kode_matkul = input("Masukkan Kode Mata Kuliah Baru (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not kode_matkul:  
+                print("Kode mata kuliah tidak boleh kosong. Silakan ulangi.")
+                continue
+            elif kode_matkul == '0':
+                print("Kembali ke menu utama...")
+                return
+
+            cursor.execute("SELECT (kode_matkul) FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+            cek_matkul = cursor.fetchone()
+
+            if cek_matkul:
+                print(f"Kode mata kuliah '{kode_matkul}/{kode_matkul.upper()}' sudah ada. Silakan gunakan kode yang lain.")
+                continue
+            else:
                 break
-            
+
+        while True:   
             nama_matkul = input("Masukkan Nama Mata Kuliah Baru (Ketik '0' untuk kembali ke Menu utama): ").strip()
             if not nama_matkul:  # Validasi nama mata kuliah kosong
                 print("Nama mata kuliah tidak boleh kosong. Silakan ulangi.")
                 continue
             elif nama_matkul == '0':
-                break
+                print("Kembali ke menu utama...")
+                return
             
             # Insert data ke database
             cursor.execute("INSERT INTO mata_kuliah (kode_matkul, nama_matkul) VALUES (%s, %s)", (kode_matkul.upper(), nama_matkul.capitalize()))
             conn.commit()
             print(f"Mata kuliah {nama_matkul} berhasil ditambahkan!\n")
-        
-        print("Proses penambahan mata kuliah selesai.")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
@@ -188,17 +201,21 @@ def delete_mata_kuliah():
             if not mata_kuliah:
                 print("Kode mata kuliah tidak ditemukan. Silakan coba lagi.")
                 continue
-
-            # Konfirmasi penghapusan
-            konfirmasi = input(f"Apakah Anda yakin ingin menghapus mata kuliah '{mata_kuliah[0]}'? (y/n): ").strip().lower()
-            if konfirmasi == 'y':
-                cursor.execute("DELETE FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
-                conn.commit()
-                print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil dihapus!\n")
-            elif konfirmasi == 'n':
-                print("Penghapusan dibatalkan.")
-            else:
-                print("Input tidak valid. Silakan coba lagi.")
+        
+            while True:
+                # Konfirmasi penghapusan
+                konfirmasi = input(f"Apakah Anda yakin ingin menghapus mata kuliah '{mata_kuliah[0]}'? ('Y'/ 'N'): ").strip().upper()
+                if konfirmasi == 'Y':
+                    cursor.execute("DELETE FROM mata_kuliah WHERE kode_matkul = %s", (kode_matkul.upper(),))
+                    conn.commit()
+                    print(f"Mata kuliah dengan kode {kode_matkul.upper()} berhasil dihapus!\n")
+                    return
+                elif konfirmasi == 'N':
+                    print("Penghapusan dibatalkan.")
+                    return
+                else:
+                    print("Input tidak valid. Silakan coba lagi.")
+                    continue
 
         print("Proses penghapusan mata kuliah selesai.")
 

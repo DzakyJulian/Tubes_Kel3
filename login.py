@@ -51,40 +51,43 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
         while attempts < 3:
             print(f"\nAnda memilih untuk login sebagai mahasiswa.")
 
-            # validasi input NIM yang kosong
-            while True:
-                nim = input("Masukkan NIM ('0' untuk kembali): ").strip()
-                if len(nim) <= 0:
-                    print("NIM tidak boleh kosong")
-                else:
-                    break
-
-            if nim == '0':
-                print("Kembali ke menu pilih peran...")
-                return
-
-            # validasi input password yang kosong
-            while True:
-                password = input("Masukkan Password: ").strip()
-                if len(password) <= 0:
-                    print("Password tidak boleh kosong")
-                else:
-                    break
-
-            # Normalisasi password
-            password = unicodedata.normalize("NFKC", password).strip()
-
-            # Check NIM di database dengan parameterized query untuk mencegah SQL injection
-            cursor.execute("SELECT nim, email, password, user_role FROM users WHERE nim = %s", (nim,))
-            result = cursor.fetchone()
-
-            if result is None:
-                print("Login gagal! NIM atau password salah.")
+        # validasi input NIM yang kosong
+        while True:
+            nim = input("Masukkan NIM ('0' untuk kembali): ").lower()
+            if len(nim) <= 0:
+                print("❗ NIM tidak boleh kosong❗")
             else:
-                nim_db, email, hashed_password, user_role = result
-                if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
-                    if user_role == role:
-                        print(f"Login berhasil sebagai {role.capitalize()}.")
+                break
+
+        if nim == '0':
+            print("Kembali ke menu pilih peran...")
+            return
+
+        # validasi input password yang kosong
+        while True:
+            password = input("Masukkan Password: ").strip()
+            if len(password) <= 0:
+                print("❗ Password tidak boleh kosong❗")
+            else:
+                break
+
+        # Normalisasi password
+        password = unicodedata.normalize("NFKC", password).strip()
+
+        # Check NIM di database dengan parameterized query untuk mencegah SQL injection
+        cursor.execute("SELECT nim, email, password, user_role FROM users WHERE nim = %s", (nim,))
+        result = cursor.fetchone()
+
+        if result is None:
+            print("Login gagal! NIM atau password salah.❌")
+        else:
+            nim_db, email, hashed_password, user_role = result
+            if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
+                if user_role == role:
+                    print(f"✅ Login berhasil sebagai {role.capitalize()}. ✅")
+
+                    # Arahkan ke menu berdasarkan peran
+                    if role == 'mahasiswa':
                         mahasiswa_menu(nim_db, email)
                         return
                     else:

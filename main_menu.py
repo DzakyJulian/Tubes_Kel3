@@ -6,7 +6,7 @@ from main_features_admin import (
     tampilkan_kelas, add_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
 )
 from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, lihat_profil, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
-from register import register_user
+from register import register_mahasiswa, register_admin
 from login import login_main
 from admin_db_info import get_current_mysql_password
 from prettytable import PrettyTable
@@ -230,7 +230,23 @@ def main():
                     continue  # Kembali ke menu login jika role tidak ditemukan
 
         elif choice == '2':
-            register_user()  # Fungsi untuk register user
+            while True:
+                print("==============================")
+                print("| 1. Register Mahasiswa      |")
+                print("| 2. Register Admin          |")
+                print("| 3. Keluar                  |")
+                print("==============================")
+                reg_choice = input("Pilih opsi (1/2/3): ").strip()
+                if reg_choice == '1':
+                    register_mahasiswa()  # Fungsi untuk register mahasiswa
+                    break
+                elif reg_choice == '2':
+                    register_admin() # Fungsi untuk register admin
+                    break
+                elif reg_choice == '3':
+                    break
+                else:
+                    print("Harap masukkan input yang valid.")
         elif choice == '3':
             print("Terima kasih telah menggunakan program ini.")
             break  # Ini akan keluar dari program

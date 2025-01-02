@@ -47,8 +47,9 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
     """
     attempts = 0  # Hitungan percobaan login
 
-    while attempts < 3:
-        print(f"\nAnda memilih untuk login sebagai {role.capitalize()}.")
+    if role == 'mahasiswa':
+        while attempts < 3:
+            print(f"\nAnda memilih untuk login sebagai mahasiswa.")
 
         # validasi input NIM yang kosong
         while True:
@@ -88,20 +89,71 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                     # Arahkan ke menu berdasarkan peran
                     if role == 'mahasiswa':
                         mahasiswa_menu(nim_db, email)
-                    elif role == 'admin':
-                        admin_menu()
-                    return
+                        return
+                    else:
+                        print("Login gagal! NIM atau password salah.")
                 else:
-                    print("Login gagal! NIM atau password salah.❌")
-            else:
-                print("Login gagal! NIM atau password salah.❌")
+                    print("Login gagal! NIM atau password salah.")
 
-        attempts += 1
-        if attempts < 3:
-            print(f"Sisa percobaan login: {3 - attempts} ⚠️")
-        else:
-            print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
-            time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
+            attempts += 1
+            if attempts < 3:
+                print(f"Sisa percobaan login: {3 - attempts}")
+            else:
+                print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
+                time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
+    
+    elif role == 'admin':
+        while attempts < 3:
+            print(f"\nAnda memilih untuk login sebagai admin.")
+
+            # validasi input Email yang kosong
+            while True:
+                email = input("Masukkan Email ('0' untuk kembali): ").lower()
+                if len(email) <= 0:
+                    print("Email tidak boleh kosong.")
+                else:
+                    break
+
+            if email == '0':
+                print("Kembali ke menu pilih peran...")
+                return
+
+            # validasi input password yang kosong
+            while True:
+                password = input("Masukkan Password: ").strip()
+                if len(password) <= 0:
+                    print("Password tidak boleh kosong")
+                else:
+                    break
+
+            # Normalisasi password
+            password = unicodedata.normalize("NFKC", password).strip()
+
+            # Check Email di database dengan parameterized query untuk mencegah SQL injection
+            cursor.execute("SELECT nim, email, password, user_role FROM users WHERE email = %s", (email,))
+            result = cursor.fetchone()
+
+            if result is None:
+                print("Login gagal! Email atau password salah.")
+            else:
+                nim_db, email, hashed_password, user_role = result
+                if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
+                    if user_role == role:
+                        print(f"Login berhasil sebagai Admin.")
+                        admin_menu()
+                        return
+                    else:
+                        print("Login gagal! Email atau password salah.")
+                else: 
+                    print("Login gagal! Email atau password salah.")
+
+            attempts += 1
+            if attempts < 3:
+                print(f"Sisa percobaan login: {3 - attempts}")
+            else:
+                print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
+                time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
+
 
 # Tutup koneksi database setelah login selesai
 def close_connection():

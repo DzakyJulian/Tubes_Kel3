@@ -689,66 +689,75 @@ def view_jadwal_dosen():
 def edit_jadwal_dosen():
     cursor = conn.cursor()
     print("\n=== Edit Jadwal Kosong Dosen ===")
-    kode_dosen = input("Masukkan Kode Dosen yang ingin diedit jadwalnya (Ketik '0' untuk kembali): ").strip()
-    if kode_dosen == '0':
-        print("Kembali ke menu utama.")
-        return  # Keluar dari fungsi
 
     try:
-        # Menampilkan jadwal yang ada untuk dosen tersebut
-        cursor.execute("SELECT id, hari, jam_mulai, jam_selesai FROM jadwal_dosen WHERE kode_dosen = %s", (kode_dosen,))
-        jadwal = cursor.fetchall()
+        cursor.execute("SELECT * FROM dosen")
+        dosens = cursor.fetchall()
+        if dosens:
+            table = PrettyTable()
+            table.field_names = ["Kode Dosen", "Nama"]
 
-        if not jadwal:
-            print(f"Tidak ada jadwal kosong untuk dosen dengan kode_dosen {kode_dosen}.")
+            for dosen in dosens:
+                table.add_row([dosen[0], dosen[1]])
+            print(table)
+        else:
+            print("Tidak ada data dosen.")
+
+        kode_dosen = input("Masukkan Kode Dosen yang ingin diedit jadwalnya (Ketik '0' untuk kembali): ").strip()
+        if kode_dosen == '0':
+            print("Kembali ke menu utama.")
             return
 
-        # Menampilkan jadwal yang ada
+        cursor.execute("SELECT * FROM jadwal_dosen WHERE kode_dosen = %s", (kode_dosen,))
+        jadwals = cursor.fetchall()
+
+        if not jadwals:
+            print(f"Tidak ada jadwal kosong untuk dosen dengan kode_dosen '{kode_dosen}'.")
+            return
+
         print("\nJadwal Kosong yang Ada:")
-        for j in jadwal:
-            print(f"ID: {j[0]} - Hari: {j[1]} - Jam Mulai: {j[2]} - Jam Selesai: {j[3]}")
+        table = PrettyTable()
+        table.field_names = ["ID", "Hari", "Jam Mulai", "Jam Selesai"]
 
-        # Memilih jadwal untuk diedit
-        id_jadwal = input("\nMasukkan ID jadwal yang ingin diedit (Ketik '0' untuk kembali): ").strip()
-        if id_jadwal == '0':
-            print("Kembali ke menu sebelumnya.")
-            return
+        for jadwal in jadwals:
+            table.add_row([jadwal[0], jadwal[2], jadwal[3], jadwal[4]])
+        print(table)
 
-        # Memeriksa apakah ID yang dimasukkan valid
-        cursor.execute("SELECT * FROM jadwal_dosen WHERE id = %s", (id_jadwal,))
-        jadwal_edit = cursor.fetchone()
+        while True:
+            id_jadwal = input("Masukkan ID jadwal yang ingin diubah (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not id_jadwal:
+                print("ID jadwal tidak boleh kosong!")
+                continue
+            elif id_jadwal == '0':
+                print("Kembali ke menu utama...")
+                return
 
-        if not jadwal_edit:
-            print(f"Jadwal dengan ID {id_jadwal} tidak ditemukan.")
-            return
+            cursor.execute("SELECT * FROM jadwal_dosen WHERE id = %s", (id_jadwal,))
+            jadwal = cursor.fetchone()
 
-        # Mengedit data jadwal
-        print("Masukkan data baru untuk jadwal ini. Ketik '0' untuk membatalkan.")
-        hari_baru = input(f"Masukkan hari baru (sebelumnya {jadwal_edit[1]}): ").strip()
-        if hari_baru == '0':
-            print("Proses pembaruan dibatalkan.")
-            return
+            if not jadwal:
+                print(f"Jadwal dengan ID '{id_jadwal}' tidak ditemukan. Silakan masukkan ID yang valid.")
+                continue
+            else:
+                break
 
-        jam_mulai_baru = input(f"Masukkan jam mulai baru (sebelumnya {jadwal_edit[2]}): ").strip()
-        if jam_mulai_baru == '0':
-            print("Proses pembaruan dibatalkan.")
-            return
+        print("Tekan Enter jika tidak ingin mengubah data pada kolom tertentu.")
 
-        jam_selesai_baru = input(f"Masukkan jam selesai baru (sebelumnya {jadwal_edit[3]}): ").strip()
-        if jam_selesai_baru == '0':
-            print("Proses pembaruan dibatalkan.")
-            return
+        hari = input(f"Masukkan Hari Baru (Saat ini: {jadwal[2]}): ").strip() or jadwal[2]
+        jam_mulai = input(f"Masukkan Jam Mulai Baru (Saat ini: {jadwal[3]}): ").strip() or jadwal[3]
+        jam_selesai = input(f"Masukkan Jam Selesai Baru (Saat ini: {jadwal[4]}): ").strip() or jadwal[4]
 
-        # Update jadwal dosen
-        update_query = '''UPDATE jadwal_dosen
-                          SET hari = %s, jam_mulai = %s, jam_selesai = %s
-                          WHERE id = %s'''
-        cursor.execute(update_query, (hari_baru, jam_mulai_baru, jam_selesai_baru, id_jadwal))
+        query = """
+        UPDATE jadwal_dosen
+        SET hari = %s, jam_mulai = %s, jam_selesai = %s
+        WHERE id = %s
+        """
+        cursor.execute(query, (hari, jam_mulai, jam_selesai, id_jadwal))
         conn.commit()
+        print(f"Jadwal dengan ID '{id_jadwal}' berhasil diperbarui!\n")
 
-        print("Jadwal dosen berhasil diperbarui.")
-    except Exception as e:
-        print(f"Terjadi kesalahan: {e}")
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
     finally:
         cursor.close()
 

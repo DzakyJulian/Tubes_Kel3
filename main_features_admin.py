@@ -37,6 +37,10 @@ def add_ruang_kelas():
                 continue
             
             informasi_kelas = input("Masukkan Informasi Kelas: ").strip()
+            if not informasi_kelas:  # Validasi informasi kelas kosong
+                print("Informasi kelas tidak boleh kosong. Silakan ulangi.\n")
+                continue
+
             
             # Menambahkan data ke tabel kelas jika belum ada
             query = "INSERT INTO kelas (kode_kelas, informasi_kelas) VALUES (%s, %s)"

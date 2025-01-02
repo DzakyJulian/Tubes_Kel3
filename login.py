@@ -104,7 +104,7 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
 
             # validasi input Email yang kosong
             while True:
-                email = input("Masukkan Email ('0' untuk kembali): ").lower()
+                email = input("Masukkan Email ('0' untuk kembali): ")
                 if len(email) <= 0:
                     print("Email tidak boleh kosong.")
                 else:
@@ -121,7 +121,7 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                     print("Password tidak boleh kosong")
                 else:
                     break
-
+            
             # Normalisasi password
             password = unicodedata.normalize("NFKC", password).strip()
 

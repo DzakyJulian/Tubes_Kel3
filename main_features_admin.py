@@ -72,11 +72,13 @@ def add_mata_kuliah():
             elif nama_matkul == '0':
                 print("Kembali ke menu utama...")
                 return
+            else:
+                break
             
-            # Insert data ke database
-            cursor.execute("INSERT INTO mata_kuliah (kode_matkul, nama_matkul) VALUES (%s, %s)", (kode_matkul.upper(), nama_matkul.capitalize()))
-            conn.commit()
-            print(f"Mata kuliah {nama_matkul} berhasil ditambahkan!\n")
+        # Insert data ke database
+        cursor.execute("INSERT INTO mata_kuliah (kode_matkul, nama_matkul) VALUES (%s, %s)", (kode_matkul.upper(), nama_matkul.capitalize()))
+        conn.commit()
+        print(f"Mata kuliah {nama_matkul} berhasil ditambahkan!\n")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

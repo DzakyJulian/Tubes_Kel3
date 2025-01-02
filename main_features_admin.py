@@ -27,9 +27,22 @@ def add_ruang_kelas():
                 print("Proses penambahan ruang kelas selesai.\n")
                 break
             
-            informasi_kelas = input("Masukkan Informasi Kelas: ").strip()
+            # Cek apakah kode kelas sudah ada
+            check_query = "SELECT COUNT(*) FROM kelas WHERE kode_kelas = %s"
+            cursor.execute(check_query, (kode_kelas,))
+            (count,) = cursor.fetchone()
             
-            # Menambahkan data ke tabel kelas
+            if count > 0:
+                print(f"Kode kelas '{kode_kelas}' sudah ada. Tidak dapat menambahkan kelas yang sama.\n")
+                continue
+            
+            informasi_kelas = input("Masukkan Informasi Kelas: ").strip()
+            if not informasi_kelas:  # Validasi informasi kelas kosong
+                print("Informasi kelas tidak boleh kosong. Silakan ulangi.\n")
+                continue
+
+            
+            # Menambahkan data ke tabel kelas jika belum ada
             query = "INSERT INTO kelas (kode_kelas, informasi_kelas) VALUES (%s, %s)"
             cursor.execute(query, (kode_kelas, informasi_kelas))
             conn.commit()
@@ -39,6 +52,7 @@ def add_ruang_kelas():
         print(f"Terjadi kesalahan: {err}")
     finally:
         cursor.close()
+
 
 def view_data_ruangkelas():
     cursor = conn.cursor()

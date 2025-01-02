@@ -356,12 +356,14 @@ def input_jadwal_dosen():
             return  # Keluar dari fungsi
         
         cursor.execute("SELECT nip FROM dosen WHERE nip = %s",(nip,))
-        nip = cursor.fetchone()
-
-        if nip is None:
+        nip_result = cursor.fetchone()
+        
+        if nip_result is None:
             print("Dosen dengan NIP tersebut tidak ditemukan. Silakan mencoba lagi.")
             continue
-
+        
+        nip = nip_result[0]  # Ambil nilai nip dari tuple
+        
         try:
             while True:
                 print("\nKetik '0' untuk kembali tanpa menyimpan.")
@@ -395,7 +397,7 @@ def input_jadwal_dosen():
 
         except Exception as e:
             print(f"Terjadi kesalahan: {e}")
-
+            
 def view_jadwal_dosen():
     cursor = conn.cursor()
     try:

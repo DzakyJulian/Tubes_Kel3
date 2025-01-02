@@ -1,4 +1,5 @@
 import mysql.connector
+import re
 from datetime import datetime
 from admin_db_info import get_current_mysql_password
 from enum import Enum
@@ -232,25 +233,84 @@ def add_dosen():
     try:
         while True:
             # Input NIP Dosen
-            nip = input("Masukkan NIP Dosen: ").strip()
+            nip = input("Masukkan NIP Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
             if not nip:  # Hentikan jika input kosong
-                print("Proses penambahan data dosen selesai.\n")
+                print("NIP Dosen tidak boleh kosong!\n")
+                continue
+            elif nip == '0':
+                print("Kembali ke menu utama...")
+                return
+            
+            cursor.execute("SELECT * FROM dosen WHERE nip = %s", (nip,))
+            dosen = cursor.fetchone()
+
+            if dosen:
+                print(f"NIP '{nip}' sudah terdaftar. Silakan masukkan NIP yang berbeda.")
+                continue
+            else:
                 break
 
+        while True:
             # Input data lainnya
-            nama = input("Masukkan Nama Dosen: ").strip()
-            alamat = input("Masukkan Alamat Dosen: ").strip()
-            email = input("Masukkan Email Dosen: ").strip()
-            no_telp = input("Masukkan No. Telepon Dosen: ").strip()
+            nama = input("Masukkan Nama Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not nama:
+                print("Nama dosen tidak boleh kosong.")
+                continue
+            elif nama == '0':
+                print("Kembali ke menu utama...")
+                return
+            else:
+                break
 
-            # Query untuk menambahkan data ke tabel dosen
-            query = """
-            INSERT INTO dosen (nip, nama, alamat, email, no_tlp)
-            VALUES (%s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (nip, nama, alamat, email, no_telp))
-            conn.commit()
-            print(f"Data dosen dengan NIP '{nip}' berhasil ditambahkan!\n")
+        while True:
+            alamat = input("Masukkan Alamat Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not alamat:
+                print("Alamat dosen tidak boleh kosong.")
+                continue
+            elif alamat == '0':
+                print("Kembali ke menu utama...")
+                return
+            else:
+                break
+
+        # Validasi email
+        while True:
+            email = input("Masukkan Email Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not email:
+                print("Email tidak boleh kosong.")
+                continue
+            elif email == '0':
+                print("Kembali ke menu utama...")
+                return
+            elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                print("Email tidak valid. Harap periksa format email Anda.")
+                continue
+            else:
+                break
+
+        # Validasi nomor telepon
+        while True:
+            no_telp = input("Masukkan No. Telepon Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not no_telp:
+                print("No. telepon tidak boleh kosong.")
+                continue
+            elif no_telp == '0':
+                print("Kembali ke menu utama...")
+                return
+            elif not re.match(r"^\d{10,15}$", no_telp):
+                print("No. telepon tidak valid. Harap masukkan no. telepon yang benar (10-15 digit).")
+                continue
+            else:
+                break
+
+        # Query untuk menambahkan data ke tabel dosen
+        query = """
+        INSERT INTO dosen (nip, nama, alamat, email, no_tlp)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (nip, nama, alamat, email, no_telp))
+        conn.commit()
+        print(f"Data dosen dengan NIP '{nip}' berhasil ditambahkan!\n")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")

@@ -60,7 +60,7 @@ def seed_database():
         
         # INSERT DOSEN
         insert_dosen_query = """
-        INSERT INTO dosen (nip, nama, alamat, email, no_tlp)
+        INSERT INTO dosen (kode_dosen, nama, alamat, email, no_tlp)
         VALUES (%s, %s, %s, %s, %s)
         """
         dosen_data = [
@@ -78,7 +78,7 @@ def seed_database():
 
         # INSERT JADWAL DOSEN
         insert_jadwaldosen_query = """
-        INSERT INTO jadwal_dosen (id, nip, hari, jam_mulai, jam_selesai)
+        INSERT INTO jadwal_dosen (id, kode_dosen, hari, jam_mulai, jam_selesai)
         VALUES (%s, %s, %s, %s, %s)
         """
         jadwaldosen_data = [
@@ -136,7 +136,7 @@ def seed_database():
 
         # INSERT DETAIL KELAS
         insert_detailkelas_query = """
-        INSERT INTO detail_kelas (id_detail_kelas, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, informasi_kelas, pengguna, status)
+        INSERT INTO detail_kelas (id_detail_kelas, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, kode_dosen, informasi_kelas, pengguna, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         detail_kelas_data = [
@@ -173,7 +173,7 @@ def seed_database():
 
         # INSERT PENGAJUAN
         insert_pengajuan_query = """
-        INSERT INTO pengajuan (id_pengajuan, id_detail_kelas, nim, email, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, nip_dosen, nama_dosen, informasi_kelas, pengguna, tgl_pengajuan, status_pengajuan, komentar) 
+        INSERT INTO pengajuan (id_pengajuan, id_detail_kelas, nim, email, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, kode_dosen, nama_dosen, informasi_kelas, pengguna, tgl_pengajuan, status_pengajuan, komentar) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         pengajuan_data = [

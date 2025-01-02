@@ -19,11 +19,11 @@ def ajukan_kelas(nim, email):
     print("\n--- Kelas Tersedia ---")
     try:
         query = '''
-        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, 
+        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.kode_dosen, 
                dosen.nama, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, detail_kelas.informasi_kelas, 
                detail_kelas.status, detail_kelas.pengguna
         FROM detail_kelas 
-        INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
+        INNER JOIN dosen ON detail_kelas.kode_dosen = dosen.kode_dosen
         WHERE detail_kelas.status = 'Tersedia'
         ORDER BY kode_kelas ASC
         '''
@@ -42,7 +42,7 @@ def ajukan_kelas(nim, email):
                 "ID Detail Kelas",
                 "Kode Kelas", 
                 "Kode Mata Kuliah", 
-                "NIP Dosen", 
+                "Kode Dosen", 
                 "Dosen yang Mengajar", 
                 "Hari", 
                 "Waktu Mulai", 
@@ -168,7 +168,7 @@ def batal_kelas(nim):
         # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
         print("\n--- Pesanan Kelas Anda ---")
         cursor.execute(''' 
-            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.nip_dosen,  
+            SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_dosen,  
                     detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
                     transaksi.pengguna, transaksi.status_transaksi
             FROM transaksi
@@ -281,17 +281,17 @@ def pengajuan(nim, email):
             print("-" * 40)
 
     # Memilih dosen
-    nip = input("Masukkan NIP Dosen: ").strip()
+    kode_dosen = input("Masukkan Kode Dosen: ").strip()
 
     try:
         # Ambil jadwal kosong dosen dan nama dosen dari database
         query = """
         SELECT jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai, dosen.nama
         FROM jadwal_dosen
-        INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
-        WHERE jadwal_dosen.nip = %s
+        INNER JOIN dosen ON jadwal_dosen.kode_dosen = dosen.kode_dosen
+        WHERE jadwal_dosen.kode_dosen = %s
         """
-        cursor.execute(query, (nip,))
+        cursor.execute(query, (kode_dosen,))
         jadwal_list = cursor.fetchall()
 
         if not jadwal_list:
@@ -335,11 +335,11 @@ def pengajuan(nim, email):
 
             # Validasi jadwal dosen dengan menggunakan BETWEEN
             query_dosen = """
-                SELECT nip, hari, jam_mulai, jam_selesai
+                SELECT kode_dosen, hari, jam_mulai, jam_selesai
                 FROM jadwal_dosen
-                WHERE nip = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+                WHERE kode_dosen = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
             """
-            cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
+            cursor.execute(query_dosen, (kode_dosen, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
             jadwal_bentrok_dosen = cursor.fetchall()
 
             if jadwal_bentrok_dosen:
@@ -374,20 +374,20 @@ def pengajuan(nim, email):
 
         infoKelas = pengguna + " [ "+ kategori_sks + " SKS ]" + results[0]
 
-        # Validasi NIP dosen
-        cursor.execute("SELECT nama FROM dosen WHERE nip = %s", (nip,))
+        # Validasi kode_dosen dosen
+        cursor.execute("SELECT nama FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
         nama = cursor.fetchone()
 
         if nama is None:
-            print("NIP dosen tidak ditemukan. Silakan periksa kembali.")
+            print("Kode dosen tidak ditemukan. Silakan periksa kembali.")
             return
 
         nama_dosen = nama[0]
 
         cursor.execute("""
-            INSERT INTO pengajuan (nim, email, pengguna, kode_kelas, nip_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
+            INSERT INTO pengajuan (nim, email, pengguna, kode_kelas, kode_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, informasi_kelas, tgl_pengajuan, status_pengajuan)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pengajuan Pending')
-        """, (nim, email, pengguna, kode_kelas, nip, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
+        """, (nim, email, pengguna, kode_kelas, kode_dosen, nama_dosen, kode_matkul, hari, jam_mulai, jam_selesai, infoKelas))
 
         conn.commit()
 
@@ -403,7 +403,7 @@ def batal_pengajuan(nim):
         # Tampilkan pesanan yang sudah ada (status 'Pending' atau 'Confirmed')
         print("\n--- Pesanan Kelas Anda ---")
         cursor.execute(''' 
-            SELECT id_pengajuan, pengguna, kode_kelas, nip_dosen, nama_dosen, hari,
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_dosen, nama_dosen, hari,
                 jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
             FROM pengajuan
             WHERE pengajuan.nim = %s AND status_pengajuan = 'Pengajuan Pending' OR status_pengajuan = 'ACC Pengajuan'
@@ -481,7 +481,7 @@ def lihat_pesanan_kelas(NIM):
     try:
         cursor.execute(f"""
                 SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, 
-                       detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
+                       detail_kelas.kode_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai, transaksi.tanggal_transaksi, 
                        transaksi.pengguna, transaksi.status_transaksi, transaksi.komentar
                 FROM transaksi 
                        INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas WHERE nim = {NIM}
@@ -498,7 +498,7 @@ def lihat_pesanan_kelas(NIM):
                 "ID Detail Kelas", 
                 "Kode Kelas",
                 "Kode Mata Kuliah",
-                "NIP Dosen",
+                "Kode Dosen",
                 "Hari", 
                 "Jam Mulai", 
                 "Jam Selesai", 
@@ -530,7 +530,7 @@ def lihat_pesanan_mandiri(NIM):
     cursor = conn.cursor()
     try:
         cursor.execute(f"""
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                 jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
             FROM pengajuan WHERE nim = {NIM}
         """)
@@ -546,7 +546,7 @@ def lihat_pesanan_mandiri(NIM):
                 "Diajukan oleh",
                 "Kode Kelas",
                 "Kode Mata Kuliah",
-                "NIP Dosen",
+                "Kode Dosen",
                 "Dosen",
                 "Hari", 
                 "Jam Mulai", 

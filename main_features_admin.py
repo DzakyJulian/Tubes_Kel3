@@ -236,24 +236,24 @@ def delete_mata_kuliah():
 def add_dosen():
     cursor = conn.cursor()
     print("\n=== Tambah Data Dosen ===")
-    print("Tekan Enter pada 'NIP' jika ingin berhenti.\n")
+    print("Tekan Enter pada 'Kode Dosen' jika ingin berhenti.\n")
     
     try:
         while True:
-            # Input NIP Dosen
-            nip = input("Masukkan NIP Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
-            if not nip:  # Hentikan jika input kosong
-                print("NIP Dosen tidak boleh kosong!\n")
+            # Input Kode Dosen
+            kode_dosen = input("Masukkan Kode Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not kode_dosen:  # Hentikan jika input kosong
+                print("Kode Dosen tidak boleh kosong!\n")
                 continue
-            elif nip == '0':
+            elif kode_dosen == '0':
                 print("Kembali ke menu utama...")
                 return
             
-            cursor.execute("SELECT * FROM dosen WHERE nip = %s", (nip,))
+            cursor.execute("SELECT * FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
             dosen = cursor.fetchone()
 
             if dosen:
-                print(f"NIP '{nip}' sudah terdaftar. Silakan masukkan NIP yang berbeda.")
+                print(f"kode_dosen '{kode_dosen}' sudah terdaftar. Silakan masukkan kode_dosen yang berbeda.")
                 continue
             else:
                 break
@@ -313,12 +313,12 @@ def add_dosen():
 
         # Query untuk menambahkan data ke tabel dosen
         query = """
-        INSERT INTO dosen (nip, nama, alamat, email, no_tlp)
+        INSERT INTO dosen (kode_dosen, nama, alamat, email, no_tlp)
         VALUES (%s, %s, %s, %s, %s)
         """
-        cursor.execute(query, (nip, nama, alamat, email, no_telp))
+        cursor.execute(query, (kode_dosen, nama, alamat, email, no_telp))
         conn.commit()
-        print(f"Data dosen dengan NIP '{nip}' berhasil ditambahkan!\n")
+        print(f"Data dosen dengan kode_dosen '{kode_dosen}' berhasil ditambahkan!\n")
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
@@ -332,7 +332,7 @@ def view_dosen():
         dosens = cursor.fetchall()
         if dosens:
             table = PrettyTable()
-            table.field_names = ["NIP", "Nama", "Alamat", "Email", "No. Telp"]
+            table.field_names = ["kode_dosen", "Nama", "Alamat", "Email", "No. Telp"]
 
             for dosen in dosens:
                 table.add_row([dosen[0], dosen[1], dosen[2], dosen[3], dosen[4]])
@@ -345,48 +345,161 @@ def view_dosen():
     finally:
         cursor.close()
 
+def edit_dosen():
+    cursor = conn.cursor()
+    print("\n=== Edit Data Dosen ===")
+
+    try:
+        cursor.execute("SELECT * FROM dosen")
+        dosens = cursor.fetchall()
+        if dosens:
+            table = PrettyTable()
+            table.field_names = ["kode_dosen", "Nama", "Alamat", "Email", "No. Telp"]
+
+            for dosen in dosens:
+                table.add_row([dosen[0], dosen[1], dosen[2], dosen[3], dosen[4]])
+            print(table)
+        else:
+            print("Tidak ada data dosen.")
+            
+        while True:
+            kode_dosen = input("Masukkan kode_dosen Dosen yang ingin diubah (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not kode_dosen:
+                print("kode_dosen Dosen tidak boleh kosong!")
+                continue
+            elif kode_dosen == '0':
+                print("Kembali ke menu utama...")
+                return
+
+            cursor.execute("SELECT * FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
+            dosen = cursor.fetchone()
+
+            if not dosen:
+                print(f"Dosen dengan kode_dosen '{kode_dosen}' tidak ditemukan. Silakan masukkan kode_dosen yang valid.")
+                continue
+            else:
+                break
+
+        print("Tekan Enter jika tidak ingin mengubah data pada kolom tertentu.")
+
+        while True:
+            kode_dosen_baru = input(f"Masukkan kode_dosen Baru (Saat ini: {dosen[0]}): ").strip() or dosen[0]
+            if kode_dosen_baru != dosen[0]:
+                cursor.execute("SELECT * FROM dosen WHERE kode_dosen = %s", (kode_dosen_baru,))
+                if cursor.fetchone():
+                    print(f"kode_dosen '{kode_dosen_baru}' sudah terdaftar. Silakan masukkan kode_dosen yang berbeda.")
+                    continue
+            break
+
+        nama = input(f"Masukkan Nama Baru (Saat ini: {dosen[1]}): ").strip() or dosen[1]
+        alamat = input(f"Masukkan Alamat Baru (Saat ini: {dosen[2]}): ").strip() or dosen[2]
+
+        while True:
+            email = input(f"Masukkan Email Baru (Saat ini: {dosen[3]}): ").strip() or dosen[3]
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                print("Email tidak valid. Harap periksa format email Anda.")
+                continue
+            else:
+                break
+
+        while True:
+            no_telp = input(f"Masukkan No. Telepon Baru (Saat ini: {dosen[4]}): ").strip() or dosen[4]
+            if not re.match(r"^\d{10,15}$", no_telp):
+                print("No. telepon tidak valid. Harap masukkan no. telepon yang benar (10-15 digit).")
+                continue
+            else:
+                break
+
+        query = """
+        UPDATE dosen
+        SET nama = %s, alamat = %s, email = %s, no_tlp = %s
+        WHERE kode_dosen = %s
+        """
+        cursor.execute(query, (nama, alamat, email, no_telp, kode_dosen))
+        conn.commit()
+        print(f"Data dosen dengan kode dosen '{kode_dosen}' berhasil diperbarui!\n")
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
+def hapus_dosen():
+    cursor = conn.cursor()
+    print("\n=== Hapus Data Dosen ===")
+    try:
+        while True:
+            kode_dosen = input("Masukkan Kode Dosen yang ingin dihapus (Ketik '0' untuk kembali ke menu utama): ").strip()
+            if not kode_dosen:
+                print("Kode Dosen tidak boleh kosong!")
+                continue
+            elif kode_dosen == '0':
+                print("Kembali ke menu utama...")
+                return
+
+            cursor.execute("SELECT * FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
+            dosen = cursor.fetchone()
+
+            if not dosen:
+                print(f"Dosen dengan kode dosen '{kode_dosen}' tidak ditemukan. Silakan masukkan kode_dosen yang valid.")
+                continue
+            else:
+                konfirmasi = input(f"Apakah Anda yakin ingin menghapus data dosen dengan kode dosen '{kode_dosen}'? (y/n): ").strip().lower()
+                if konfirmasi == 'y':
+                    cursor.execute("DELETE FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
+                    conn.commit()
+                    print(f"Data dosen dengan kode dosen '{kode_dosen}' berhasil dihapus!\n")
+                    break
+                else:
+                    print("Penghapusan dibatalkan.")
+                    break
+
+    except mysql.connector.Error as err:
+        print(f"Terjadi kesalahan: {err}")
+    finally:
+        cursor.close()
+
 # Fungsi untuk input jadwal kosong dosen
 def input_jadwal_dosen():
     cursor = conn.cursor()
     print("\n=== Input Jadwal Kosong Dosen ===")
     while True:
-        nip = input("Masukkan NIP Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
-        if nip == '0':
+        kode_dosen = input("Masukkan Kode Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+        if kode_dosen == '0':
             print("Kembali ke menu utama.")
             return  # Keluar dari fungsi
         
-        cursor.execute("SELECT nip FROM dosen WHERE nip = %s",(nip,))
-        nip_result = cursor.fetchone()
+        cursor.execute("SELECT kode_dosen FROM dosen WHERE kode_dosen = %s",(kode_dosen,))
+        kode_dosen_result = cursor.fetchone()
         
-        if nip_result is None:
-            print("Dosen dengan NIP tersebut tidak ditemukan. Silakan mencoba lagi.")
+        if kode_dosen_result is None:
+            print("Dosen dengan kode dosen tersebut tidak ditemukan. Silakan mencoba lagi.")
             continue
         
-        nip = nip_result[0]  # Ambil nilai nip dari tuple
+        kode_dosen = kode_dosen_result[0]  # Ambil nilai kode_dosen dari tuple
         
         try:
             while True:
                 print("\nKetik '0' untuk kembali tanpa menyimpan.")
                 hari = input("Masukkan hari (contoh: Senin): ").strip()
                 if hari == '0':
-                    print("Proses dibatalkan. Kembali ke input NIP.")
-                    break  # Kembali ke input NIP
-                if hari.lower() not in ['senin', 'selasa', 'rabu', 'kamis', 'jumat']:
+                    print("Proses dibatalkan. Kembali ke input kode dosen.")
+                    break  # Kembali ke input kode dosen
+                if hari.capitalize() not in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']:
                     print("Hari tidak valid!.")
-
-
                     continue
+
                 if not hari:
                     print("Hari tidak boleh kosong!")
                     continue  # Minta input ulang jika hari kosong
 
                 jam_mulai = input("Masukkan jam mulai (format 24 jam, contoh: 08:00): ").strip()
                 if jam_mulai == '0':
-                    print("Proses dibatalkan. Kembali ke input NIP.")
+                    print("Proses dibatalkan. Kembali ke input kode dosen.")
                     break
                 jam_selesai = input("Masukkan jam selesai (format 24 jam, contoh: 12:00): ").strip()
                 if jam_selesai == '0':
-                    print("Proses dibatalkan. Kembali ke input NIP.")
+                    print("Proses dibatalkan. Kembali ke input kode dosen.")
                     break
 
                 # Validasi agar jam mulai tidak lebih dari jam selesai
@@ -395,8 +508,8 @@ def input_jadwal_dosen():
                     continue
 
                 # Menyimpan jadwal dosen
-                query = "INSERT INTO jadwal_dosen (nip, hari, jam_mulai, jam_selesai) VALUES (%s, %s, %s, %s)"
-                cursor.execute(query, (nip, hari, jam_mulai, jam_selesai))
+                query = "INSERT INTO jadwal_dosen (kode_dosen, hari, jam_mulai, jam_selesai) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (kode_dosen, hari.capitalize(), jam_mulai, jam_selesai))
                 conn.commit()  # Menyimpan data setelah setiap jadwal
                 print("Jadwal kosong dosen berhasil ditambahkan.")
 
@@ -410,7 +523,7 @@ def view_jadwal_dosen():
             table = PrettyTable()
             table.field_names = ["No", "Lihat Jadwal Kosong Dosen"]
             table.add_row([1, "Lihat semua jadwal dosen"])
-            table.add_row([2, "Lihat jadwal berdasarkan NIP"])
+            table.add_row([2, "Lihat jadwal berdasarkan kode dosen"])
             table.add_row([3, "Kembali ke menu utama"])
             print(table)
              
@@ -418,9 +531,9 @@ def view_jadwal_dosen():
 
             if choice == "1":  # Lihat semua jadwal dosen
                 query = """
-                SELECT jadwal_dosen.nip, dosen.nama, jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai
+                SELECT jadwal_dosen.kode_dosen, dosen.nama, jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai
                 FROM jadwal_dosen
-                INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
+                INNER JOIN dosen ON jadwal_dosen.kode_dosen = dosen.kode_dosen
                 """
                 cursor.execute(query)
                 jadwal = cursor.fetchall()
@@ -428,11 +541,11 @@ def view_jadwal_dosen():
                 if jadwal:
                     print("\n=== Jadwal Kosong Seluruh Dosen ===")
                     table = PrettyTable()
-                    table.field_names = ["NIP Dosen", "Nama Dosen", "Hari", "Jam Mulai", "Jam Selesai"]
+                    table.field_names = ["Kode Dosen", "Nama Dosen", "Hari", "Jam Mulai", "Jam Selesai"]
 
                     for j in jadwal:
                         table.add_row([ 
-                            j[0],  # NIP Dosen
+                            j[0],  # kode Dosen
                             j[1],  # Nama Dosen
                             j[2],  # Hari
                             j[3],  # Jam Mulai
@@ -443,10 +556,10 @@ def view_jadwal_dosen():
                 else:
                     print("Tidak ada jadwal kosong dosen.")
 
-            elif choice == "2":  # Lihat jadwal berdasarkan NIP
-                nip = input("Masukkan NIP dosen: ").strip()
-                query_dosen = "SELECT nama FROM dosen WHERE nip = %s"
-                cursor.execute(query_dosen, (nip,))
+            elif choice == "2":  # Lihat jadwal berdasarkan kode_dosen
+                kode_dosen = input("Masukkan kode_dosen dosen: ").strip()
+                query_dosen = "SELECT nama FROM dosen WHERE kode_dosen = %s"
+                cursor.execute(query_dosen, (kode_dosen,))
                 result_dosen = cursor.fetchone()
 
                 if result_dosen:  # Jika dosen ditemukan
@@ -454,13 +567,13 @@ def view_jadwal_dosen():
                     query_jadwal = """
                     SELECT jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai
                     FROM jadwal_dosen
-                    WHERE nip = %s
+                    WHERE kode_dosen = %s
                     """
-                    cursor.execute(query_jadwal, (nip,))
+                    cursor.execute(query_jadwal, (kode_dosen,))
                     jadwal_dosen = cursor.fetchall()
 
                     if jadwal_dosen:
-                        print(f"\n=== Jadwal Kosong untuk Dosen NIP {nip} ({nama_dosen}) ===")
+                        print(f"\n=== Jadwal Kosong untuk Dosen kode dosen {kode_dosen} ({nama_dosen}) ===")
                         table = PrettyTable()
                         table.field_names = ["Hari", "Jam Mulai", "Jam Selesai"]
                         for j in jadwal_dosen:
@@ -472,9 +585,9 @@ def view_jadwal_dosen():
                         print(table)    
                            
                     else:
-                        print(f"Tidak ada jadwal kosong untuk dosen dengan NIP {nip} ({nama_dosen}).")
+                        print(f"Tidak ada jadwal kosong untuk dosen dengan kode dosen {kode_dosen} ({nama_dosen}).")
                 else:
-                    print(f"Dosen dengan NIP {nip} tidak ditemukan.")
+                    print(f"Dosen dengan kode dosen {kode_dosen} tidak ditemukan.")
 
             elif choice == "3":  # Kembali ke menu utama
                 print("Kembali ke menu utama.")
@@ -491,18 +604,18 @@ def view_jadwal_dosen():
 def edit_jadwal_dosen():
     cursor = conn.cursor()
     print("\n=== Edit Jadwal Kosong Dosen ===")
-    nip = input("Masukkan NIP Dosen yang ingin diedit jadwalnya (Ketik '0' untuk kembali): ").strip()
-    if nip == '0':
+    kode_dosen = input("Masukkan Kode Dosen yang ingin diedit jadwalnya (Ketik '0' untuk kembali): ").strip()
+    if kode_dosen == '0':
         print("Kembali ke menu utama.")
         return  # Keluar dari fungsi
 
     try:
         # Menampilkan jadwal yang ada untuk dosen tersebut
-        cursor.execute("SELECT id, hari, jam_mulai, jam_selesai FROM jadwal_dosen WHERE nip = %s", (nip,))
+        cursor.execute("SELECT id, hari, jam_mulai, jam_selesai FROM jadwal_dosen WHERE kode_dosen = %s", (kode_dosen,))
         jadwal = cursor.fetchall()
 
         if not jadwal:
-            print(f"Tidak ada jadwal kosong untuk dosen dengan NIP {nip}.")
+            print(f"Tidak ada jadwal kosong untuk dosen dengan kode_dosen {kode_dosen}.")
             return
 
         # Menampilkan jadwal yang ada
@@ -554,6 +667,48 @@ def edit_jadwal_dosen():
     finally:
         cursor.close()
 
+def hapus_jadwal_dosen():
+    cursor = conn.cursor()
+    print("\n=== Hapus Jadwal Kosong Dosen ===")
+    while True:
+        kode_dosen = input("Masukkan Kode Dosen (Ketik '0' untuk kembali ke menu utama): ").strip()
+        if kode_dosen == '0':
+            print("Kembali ke menu utama.")
+            return
+
+        cursor.execute("SELECT kode_dosen FROM dosen WHERE kode_dosen = %s", (kode_dosen,))
+        if cursor.fetchone() is None:
+            print("Dosen dengan kode dosen tersebut tidak ditemukan. Silakan mencoba lagi.")
+            continue
+
+        cursor.execute("SELECT id, hari, jam_mulai, jam_selesai FROM jadwal_dosen WHERE kode_dosen = %s", (kode_dosen,))
+        jadwal = cursor.fetchall()
+
+        if not jadwal:
+            print("Dosen tidak memiliki jadwal kosong yang tercatat.")
+            continue
+
+        print("\nJadwal kosong yang tersedia:")
+        for i in range(len(jadwal)):
+            id_jadwal, hari, jam_mulai, jam_selesai = jadwal[i]
+            print(f"{i + 1}. Hari: {hari}, Jam: {jam_mulai} - {jam_selesai} (ID: {id_jadwal})")
+
+        pilihan = input("Masukkan nomor atau ID jadwal yang ingin dihapus (Ketik '0' untuk kembali): ").strip()
+        if pilihan == '0':
+            print("Proses dibatalkan.")
+            break
+
+        try:
+            id_jadwal = int(pilihan) if pilihan.isdigit() else None
+            if id_jadwal not in [jadwal[j][0] for j in range(len(jadwal))]:
+                print("Pilihan tidak valid. Silakan coba lagi.")
+                continue
+
+            cursor.execute("DELETE FROM jadwal_dosen WHERE id = %s", (id_jadwal,))
+            conn.commit()
+            print("Jadwal berhasil dihapus.")
+        except Exception as e:
+            print(f"Terjadi kesalahan: {e}")
 
 # Fungsi untuk membuat kelas berdasarkan jadwal kosong dosen
 def buat_kelas():
@@ -590,17 +745,17 @@ def buat_kelas():
             print("-" * 40)
 
     # Memilih dosen
-    nip = input("Masukkan NIP Dosen: ").strip()
+    kode_dosen = input("Masukkan Kode Dosen: ").strip()
 
     try:
         # Ambil jadwal kosong dosen dan nama dosen dari database
         query = """
         SELECT jadwal_dosen.hari, jadwal_dosen.jam_mulai, jadwal_dosen.jam_selesai, dosen.nama
         FROM jadwal_dosen
-        INNER JOIN dosen ON jadwal_dosen.nip = dosen.nip
-        WHERE jadwal_dosen.nip = %s
+        INNER JOIN dosen ON jadwal_dosen.kode_dosen = dosen.kode_dosen
+        WHERE jadwal_dosen.kode_dosen = %s
         """
-        cursor.execute(query, (nip,))
+        cursor.execute(query, (kode_dosen,))
         jadwal_list = cursor.fetchall()
 
         if not jadwal_list:
@@ -644,11 +799,11 @@ def buat_kelas():
 
             # Validasi jadwal dosen dengan menggunakan BETWEEN
             query_dosen = """
-                SELECT nip, hari, jam_mulai, jam_selesai
+                SELECT kode_dosen, hari, jam_mulai, jam_selesai
                 FROM jadwal_dosen
-                WHERE nip = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
+                WHERE kode_dosen = %s AND hari = %s AND NOT ((%s BETWEEN jam_mulai AND jam_selesai) OR (%s BETWEEN jam_mulai AND jam_selesai))
             """
-            cursor.execute(query_dosen, (nip, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
+            cursor.execute(query_dosen, (kode_dosen, hari.capitalize(), jam_mulai_dt, jam_selesai_dt))
             jadwal_bentrok_dosen = cursor.fetchall()
 
             if jadwal_bentrok_dosen:
@@ -680,10 +835,10 @@ def buat_kelas():
 
         # Simpan data kelas ke database
         query = """
-            INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, nip_dosen, jam_mulai, jam_selesai, pengguna, status) 
+            INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, kode_dosen, jam_mulai, jam_selesai, pengguna, status) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(query, (kode_kelas.upper(), kode_matkul.upper(), hari.capitalize(), nip, jam_mulai, jam_selesai, pengguna.upper(), status))
+        cursor.execute(query, (kode_kelas.upper(), kode_matkul.upper(), hari.capitalize(), kode_dosen, jam_mulai, jam_selesai, pengguna.upper(), status))
         conn.commit()
         print("Kelas berhasil dibuat.")
 
@@ -696,7 +851,7 @@ def edit_kelas():
 
     try:
         # Menampilkan daftar kelas
-        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, nip_dosen, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas"
+        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, kode_dosen, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas"
         cursor.execute(query)
         kelas_list = cursor.fetchall()
 
@@ -707,7 +862,7 @@ def edit_kelas():
         print("\nDaftar Kelas:")
         for kelas in kelas_list:
             print("-" * 40)
-            print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nNIP Dosen: {kelas[3]}\nJam: {kelas[4]} - {kelas[5]}\nPengguna: {kelas[6]}\nStatus: {kelas[7]}")
+            print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nKode Dosen: {kelas[3]}\nJam: {kelas[4]} - {kelas[5]}\nPengguna: {kelas[6]}\nStatus: {kelas[7]}")
             print("-" * 40)
 
         # Memilih kelas yang akan diedit
@@ -716,7 +871,7 @@ def edit_kelas():
             return  # Kembali ke menu utama
 
         # Mengambil data kelas berdasarkan ID
-        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, nip_dosen, hari, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas WHERE id_detail_kelas = %s"
+        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, kode_dosen, hari, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas WHERE id_detail_kelas = %s"
         cursor.execute(query, (kelas_id,))
         kelas = cursor.fetchone()
 
@@ -725,7 +880,7 @@ def edit_kelas():
             return
 
         print("\nData Kelas yang Dipilih:")
-        print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nNIP Dosen: {kelas[3]}\nHari: {kelas[4]}\nJam: {kelas[5]} - {kelas[6]}\nPengguna: {kelas[7]}\nStatus: {kelas[8]}")
+        print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nKode Dosen: {kelas[3]}\nHari: {kelas[4]}\nJam: {kelas[5]} - {kelas[6]}\nPengguna: {kelas[7]}\nStatus: {kelas[8]}")
 
         # Mengedit data kelas
         print("\nMasukkan data baru (kosongkan jika tidak ingin mengubah, ketik '0' untuk kembali):")
@@ -739,10 +894,10 @@ def edit_kelas():
             return
         kode_matkul_baru = kode_matkul_baru or kelas[2]
 
-        nip_dosen_baru = input("NIP Dosen baru: ").strip()
-        if nip_dosen_baru == '0':
+        kode_dosen_baru = input("Kode Dosen baru: ").strip()
+        if kode_dosen_baru == '0':
             return
-        nip_dosen_baru = nip_dosen_baru or kelas[3]
+        kode_dosen_baru = kode_dosen_baru or kelas[3]
 
         hari_baru = input("Hari baru: ").strip()
         if hari_baru == '0':
@@ -772,24 +927,22 @@ def edit_kelas():
         # Update data kelas di database
         query = """
             UPDATE detail_kelas
-            SET kode_kelas = %s, kode_matkul = %s, nip_dosen = %s, hari = %s, jam_mulai = %s, jam_selesai = %s, pengguna = %s, status = %s
+            SET kode_kelas = %s, kode_matkul = %s, kode_dosen = %s, hari = %s, jam_mulai = %s, jam_selesai = %s, pengguna = %s, status = %s
             WHERE id_detail_kelas = %s
         """
-        cursor.execute(query, (kode_kelas_baru.upper(), kode_matkul_baru.upper(), nip_dosen_baru, hari_baru.capitalize(), jam_mulai_baru, jam_selesai_baru, pengguna_baru.upper(), status_baru, kelas_id))
+        cursor.execute(query, (kode_kelas_baru.upper(), kode_matkul_baru.upper(), kode_dosen_baru, hari_baru.capitalize(), jam_mulai_baru, jam_selesai_baru, pengguna_baru.upper(), status_baru, kelas_id))
         conn.commit()
         print("Data kelas berhasil diperbarui.")
 
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
 
-
-
 def tampilkan_kelas():
     try:
         cursor = conn.cursor()
         query = '''
-        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, dosen.nama, detail_kelas.hari, detail_kelas.jam_mulai, 
-        detail_kelas.jam_selesai, detail_kelas.informasi_kelas, detail_kelas.status, detail_kelas.pengguna FROM detail_kelas INNER JOIN dosen ON detail_kelas.nip_dosen = dosen.nip
+        SELECT detail_kelas.id_detail_kelas, detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.kode_dosen, dosen.nama, detail_kelas.hari, detail_kelas.jam_mulai, 
+        detail_kelas.jam_selesai, detail_kelas.informasi_kelas, detail_kelas.status, detail_kelas.pengguna FROM detail_kelas INNER JOIN dosen ON detail_kelas.kode_dosen = dosen.kode_dosen
         ORDER BY kode_kelas ASC
         '''
         cursor.execute(query)
@@ -797,14 +950,14 @@ def tampilkan_kelas():
 
         if results:
             table = PrettyTable()
-            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "NIP Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
+            table.field_names = ["ID Detail Kelas", "Kode Kelas", "Kode Mata Kuliah", "Kode Dosen", "Dosen yang Mengajar", "Waktu Mulai", "Waktu Selesai", "Informasi Kelas", "Pengguna", "Status"]
         
             for row in results:
                 table.add_row([ 
                     row[0],  # ID Detail Kelas
                     row[1],  # Kode Kelas
                     row[2],  # Kode Mata Kuliah
-                    row[3],  # NIP Dosen
+                    row[3],  # Kode Dosen
                     row[4],  # Dosen yang Mengajar
                     row[5],  # Waktu Mulai
                     row[6],  # Waktu Selesai
@@ -849,7 +1002,7 @@ def proses_pengajuan_kelas():
         cursor.execute(
             """
             SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
-                   detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                   detail_kelas.kode_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
                    transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
@@ -897,7 +1050,7 @@ def proses_pengajuan_kelas():
             cursor.execute(
                 """
                 SELECT transaksi.id_transaksi, transaksi.id_detail_kelas, detail_kelas.kode_kelas, transaksi.nim,
-                       detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
+                       detail_kelas.kode_dosen, detail_kelas.hari, detail_kelas.jam_mulai, detail_kelas.jam_selesai,
                        transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
                 FROM transaksi
                 INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
@@ -918,7 +1071,7 @@ def proses_pengajuan_kelas():
         table.add_row(["ID Detail Kelas", pesanan[1]])
         table.add_row(["Kode Kelas", pesanan[2]])
         table.add_row(["NIM Pemesan", pesanan[3]])
-        table.add_row(["NIP Dosen", pesanan[4]])
+        table.add_row(["Kode Dosen", pesanan[4]])
         table.add_row(["Hari", pesanan[5]])
         table.add_row(["Jam Mulai", pesanan[6]])
         table.add_row(["Jam Selesai", pesanan[7]])
@@ -1012,7 +1165,7 @@ def proses_pembatalan_kelas_admin():
         cursor.execute(
             """
             SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
-                   detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
+                   detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.kode_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
                    detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
             FROM transaksi
             INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
@@ -1031,7 +1184,7 @@ def proses_pembatalan_kelas_admin():
         if daftar_pembatalan:
             print("\n=== Daftar Pembatalan ===")
             table = PrettyTable()
-            table.field_names = ["ID Transaksi", "ID Kelas", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen","Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
+            table.field_names = ["ID Transaksi", "ID Kelas", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","Kode Dosen","Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
             
             for pembatalan in daftar_pembatalan:
                 table.add_row([
@@ -1040,7 +1193,7 @@ def proses_pembatalan_kelas_admin():
                     pembatalan[8],  # Diajukan oleh
                     pembatalan[2],  # Kode Kelas
                     pembatalan[3],  # Kode Matkul
-                    pembatalan[4],  # NIP Dosen
+                    pembatalan[4],  # Kode Dosen
                     pembatalan[5],  # Hari
                     pembatalan[6],  # Jam mulai
                     pembatalan[7],  # Jam selesai
@@ -1069,7 +1222,7 @@ def proses_pembatalan_kelas_admin():
             cursor.execute(
                 """
                 SELECT transaksi.id_transaksi, transaksi.id_detail_kelas,
-                    detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.nip_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
+                    detail_kelas.kode_kelas, detail_kelas.kode_matkul, detail_kelas.kode_dosen, detail_kelas.hari, detail_kelas.jam_mulai, 
                     detail_kelas.jam_selesai, transaksi.pengguna, transaksi.tanggal_transaksi, transaksi.status_transaksi
                 FROM transaksi
                 INNER JOIN detail_kelas ON transaksi.id_detail_kelas = detail_kelas.id_detail_kelas
@@ -1092,7 +1245,7 @@ def proses_pembatalan_kelas_admin():
         table.add_row(["Diajukan oleh", pembatalan[8]])
         table.add_row(["Kode Kelas", pembatalan[2]])
         table.add_row(["Kode Mata Kuliah", pembatalan[3]])
-        table.add_row(["NIP Dosen", pembatalan[4]])
+        table.add_row(["Kode Dosen", pembatalan[4]])
         table.add_row(["Hari", pembatalan[5]])
         table.add_row(["Jam Mulai", pembatalan[6]])
         table.add_row(["Jam Selesai", pembatalan[7]])
@@ -1157,7 +1310,7 @@ def proses_pembatalan_kelas_mandiri():
         # Ambil semua pengajuan pembatalan yang berstatus "Pembatalan Pending"
         cursor.execute(
             """
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                     jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
             FROM pengajuan WHERE status_pengajuan = %s
             """, (StatusTransaksi.PEMBATALAN_PENDING.value,))
@@ -1174,7 +1327,7 @@ def proses_pembatalan_kelas_mandiri():
         if daftar_pembatalan:
             print("\n=== Daftar Pembatalan ===")
             table = PrettyTable()
-            table.field_names = ["ID Transaksi", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","NIP Dosen", "Dosen", "Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
+            table.field_names = ["ID Transaksi", "Diajukan oleh", "Kode Kelas","Kode Mata Kuliah","Kode Dosen", "Dosen", "Hari", "Jam Mulai", "Jam Selesai","Tanggal Pengajuan", "Status Saat Ini"]
             
             for pembatalan in daftar_pembatalan:
                 table.add_row([
@@ -1182,7 +1335,7 @@ def proses_pembatalan_kelas_mandiri():
                     pembatalan[1],  # Diajukan oleh
                     pembatalan[2],  # Kode Kelas
                     pembatalan[3],  # Kode Matkul
-                    pembatalan[4],  # NIP Dosen
+                    pembatalan[4],  # Kode Dosen
                     pembatalan[5],  # Nama Dosen
                     pembatalan[6],  # Hari
                     pembatalan[7],  # Jam mulai
@@ -1211,7 +1364,7 @@ def proses_pembatalan_kelas_mandiri():
             # Periksa apakah ID pembatalan valid
             cursor.execute(
                 """
-                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                         jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
                 FROM pengajuan WHERE id_pengajuan = %s
                 """, (id_pengajuan,))
@@ -1231,7 +1384,7 @@ def proses_pembatalan_kelas_mandiri():
         table.add_row(["Diajukan oleh", pembatalan[1]])
         table.add_row(["Kode Kelas", pembatalan[2]])
         table.add_row(["Kode Mata Kuliah", pembatalan[3]])
-        table.add_row(["NIP Dosen", pembatalan[4]])
+        table.add_row(["Kode Dosen", pembatalan[4]])
         table.add_row(["Nama Dosen", pembatalan[5]])
         table.add_row(["Hari", pembatalan[6]])
         table.add_row(["Jam Mulai", pembatalan[7]])
@@ -1296,7 +1449,7 @@ def proses_pengajuan_mandiri():
         conn.autocommit = True
 
         cursor.execute("""
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                     jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
             FROM pengajuan WHERE status_pengajuan = 'Pengajuan Pending'
         """)
@@ -1333,7 +1486,7 @@ def proses_pengajuan_mandiri():
                 continue
 
             cursor.execute("""
-                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+                SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                         jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
                 FROM pengajuan WHERE id_pengajuan = %s
             """, (id_pengajuan,))
@@ -1392,7 +1545,7 @@ def proses_pengajuan_mandiri():
         if status_pengajuan == 'ACC Pengajuan':
             cursor.execute("""
                 SELECT kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 
-                       nip_dosen, informasi_kelas, pengguna   
+                       kode_dosen, informasi_kelas, pengguna   
                 FROM pengajuan WHERE id_pengajuan = %s
             """, (id_pengajuan,))
             data = cursor.fetchone()
@@ -1408,7 +1561,7 @@ def proses_pengajuan_mandiri():
 
             cursor.execute("""
                 INSERT INTO detail_kelas (kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, 
-                    nip_dosen, informasi_kelas, pengguna, status)
+                    kode_dosen, informasi_kelas, pengguna, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'Digunakan')
             """, (kode_kelas,kode_matkul,hari,jam_mulai,jam_selesai,kode_dosen,informasiKelas,pengguna,))
             conn.commit()
@@ -1425,7 +1578,7 @@ def proses_pengajuan_mandiri():
 
         # Memuat ulang pengajuan setelah update
         cursor.execute("""
-            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, nip_dosen, nama_dosen, hari,
+            SELECT id_pengajuan, pengguna, kode_kelas, kode_matkul, kode_dosen, nama_dosen, hari,
                     jam_mulai, jam_selesai, tgl_pengajuan, status_pengajuan
             FROM pengajuan WHERE status_pengajuan = 'Pengajuan Pending'
         """)

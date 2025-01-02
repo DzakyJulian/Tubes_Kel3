@@ -25,7 +25,7 @@ def create_table():
         # Tabel dosen
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS dosen (
-            nip INT(20) NOT NULL PRIMARY KEY,
+            kode_dosen INT(20) NOT NULL PRIMARY KEY,
             nama VARCHAR(255) NOT NULL,
             alamat TEXT NOT NULL,
             email VARCHAR(255) NOT NULL,
@@ -36,7 +36,7 @@ def create_table():
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS jadwal_dosen (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            nip INT(20) NOT NULL,
+            kode_dosen INT(20) NOT NULL,
             hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu') NOT NULL,
             jam_mulai TIME NOT NULL,
             jam_selesai TIME NOT NULL,
@@ -66,7 +66,7 @@ def create_table():
             hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat') NOT NULL,
             jam_mulai TIME NOT NULL,
             jam_selesai TIME NOT NULL,
-            nip_dosen INT(20) NOT NULL,
+            kode_dosen INT(20) NOT NULL,
             informasi_kelas TEXT NOT NULL,
             pengguna VARCHAR(30) NULL,
             status ENUM('Tersedia', 'Digunakan') NOT NULL,
@@ -102,7 +102,7 @@ def create_table():
             hari ENUM('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu') NOT NULL,
             jam_mulai TIME NOT NULL,
             jam_selesai TIME NOT NULL,
-            nip_dosen INT(20) NOT NULL,
+            kode_dosen INT(20) NOT NULL,
             nama_dosen VARCHAR(225) NOT NULL,
             informasi_kelas TEXT,
             pengguna VARCHAR(30) NOT NULL,

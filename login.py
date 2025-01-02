@@ -25,10 +25,6 @@ def login_main():
         role_choice = input("Masukkan pilihan (1/2/0): ").strip()
 
         if role_choice == '0':
-            print("\n=== Sistem E-Booking Class ===")
-            print("1. Login")
-            print("2. Register")
-            print("3. Keluar")
             return  # Kembali ke menu utama
         elif role_choice in ['1', '2']:
             role = 'mahasiswa' if role_choice == '1' else 'admin'

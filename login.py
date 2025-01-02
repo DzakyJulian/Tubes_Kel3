@@ -54,7 +54,7 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
         while True:
             nim = input("Masukkan NIM ('0' untuk kembali): ").lower()
             if len(nim) <= 0:
-                print("NIM tidak boleh kosong")
+                print("❗ NIM tidak boleh kosong❗")
             else:
                 break
 
@@ -66,7 +66,7 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
         while True:
             password = input("Masukkan Password: ").strip()
             if len(password) <= 0:
-                print("Password tidak boleh kosong")
+                print("❗ Password tidak boleh kosong❗")
             else:
                 break
 
@@ -78,12 +78,12 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
         result = cursor.fetchone()
 
         if result is None:
-            print("Login gagal! NIM atau password salah.")
+            print("Login gagal! NIM atau password salah.❌")
         else:
             nim_db, email, hashed_password, user_role = result
             if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                 if user_role == role:
-                    print(f"Login berhasil sebagai {role.capitalize()}.")
+                    print(f"✅ Login berhasil sebagai {role.capitalize()}. ✅")
 
                     # Arahkan ke menu berdasarkan peran
                     if role == 'mahasiswa':
@@ -92,13 +92,13 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                         admin_menu()
                     return
                 else:
-                    print("Login gagal! NIM atau password salah.")
+                    print("Login gagal! NIM atau password salah.❌")
             else:
-                print("Login gagal! NIM atau password salah.")
+                print("Login gagal! NIM atau password salah.❌")
 
         attempts += 1
         if attempts < 3:
-            print(f"Sisa percobaan login: {3 - attempts}")
+            print(f"Sisa percobaan login: {3 - attempts} ⚠️")
         else:
             print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
             time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal

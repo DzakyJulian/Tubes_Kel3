@@ -132,7 +132,7 @@ def admin_menu():
             print("Logout berhasil! Sampai jumpa lagi.")
             break # Keluar dari menu admin setelah logout
         else:
-            print("Pilihan tidak valid! Silakan pilih menu dari 1 sampai 15.")
+            print("Pilihan tidak valid! Silakan pilih menu dari 1 sampai 14.")
 
 def mahasiswa_menu(nim, email):
     while True:

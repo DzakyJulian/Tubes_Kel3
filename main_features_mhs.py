@@ -212,7 +212,7 @@ def batal_kelas(nim):
             return
 
         # Proses konfirmasi pembatalan
-        confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N) atau ketik 0 untuk kembali: ")
+        confirmation = input(f"Apakah Anda yakin ingin membatalkan pesanan kelas ID {id_transaksi}? (Y/N) atau ketik 0 untuk kembali: ").lower()
         if confirmation.lower() == 'y':
 
             if status_transaksi_terpilih == "Pengajuan Pending":
@@ -444,7 +444,7 @@ def batal_pengajuan(nim):
             return
 
         # Proses konfirmasi pembatalan
-        confirmation = input(f"Apakah Anda yakin ingin membatalkan pengajuan kelas ID {id_pengajuan}? (Y/N) atau ketik 0 untuk kembali: ")
+        confirmation = input(f"Apakah Anda yakin ingin membatalkan pengajuan kelas ID {id_pengajuan}? (Y/N) atau ketik 0 untuk kembali: ").upper()
         if confirmation.upper() == 'Y':
 
             if status_pengajuan_terpilih == "Pengajuan Pending":

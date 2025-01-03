@@ -3,7 +3,8 @@ import os
 from main_features_admin import (
     add_mata_kuliah, proses_pembatalan_kelas_admin, view_dosen, view_data_ruangkelas, proses_pengajuan_kelas, edit_dosen, hapus_dosen,
     input_jadwal_dosen, buat_kelas, hapus_kelas, edit_jadwal_dosen, view_jadwal_dosen, edit_mata_kuliah, delete_mata_kuliah, hapus_jadwal_dosen,
-    tampilkan_kelas, add_ruang_kelas, edit_ruang_kelas, hapus_ruang_kelas, add_dosen, view_mata_kuliah, edit_kelas, proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
+    tampilkan_kelas, add_ruang_kelas, edit_ruang_kelas, hapus_ruang_kelas, add_dosen, view_mata_kuliah,
+    proses_pengajuan_mandiri, proses_pembatalan_kelas_mandiri
 )
 from main_features_mhs import ajukan_kelas, lihat_pesanan_kelas, batal_kelas, lihat_profil, pengajuan, lihat_pesanan_mandiri, batal_pengajuan
 from register import register_mahasiswa, register_admin
@@ -186,12 +187,11 @@ def admin_menu():
         elif choice == '7':
             print("1. Lihat Kelas yang sudah dibuat")
             print("2. Buat Kelas")
-            print("3. Edit Kelas")
-            print("4. Hapus Kelas")
+            print("3. Hapus Kelas")
             print("0. Kembali ke Menu Utama")
 
             while True:
-                choices = input("\nMasukkan pilihan (1/2/3/4/0): ").strip()
+                choices = input("\nMasukkan pilihan (1/2/3/0): ").strip()
                 if choices == '1':
                     tampilkan_kelas()
                     break
@@ -199,9 +199,6 @@ def admin_menu():
                     buat_kelas()
                     break
                 elif choices == '3':
-                    edit_kelas()
-                    break
-                elif choices == '4':
                     hapus_kelas()
                     break
                 elif choices == '0':

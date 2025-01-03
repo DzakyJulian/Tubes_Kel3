@@ -91,14 +91,33 @@ def edit_ruang_kelas():
                 print(f"Kode Kelas '{kode_kelas}' tidak ditemukan.\n")
                 continue
 
-            # Input informasi baru
-            informasi_baru = input("Masukkan Informasi Kelas baru: ").strip()
+            informasi_lama = result[1]
+            informasi_baru = input("Masukkan Informasi Kelas baru (kosongkan jika tidak ingin mengubah data): ").strip()
 
-            # Update data di tabel kelas
-            query_update = "UPDATE kelas SET informasi_kelas = %s WHERE kode_kelas = %s"
-            cursor.execute(query_update, (informasi_baru, kode_kelas))
-            conn.commit()
-            print(f"Ruang kelas '{kode_kelas}' berhasil diperbarui!\n")
+            if not informasi_baru:
+                print("Data tidak diubah.\n")
+                continue
+
+            print("\n=== Konfirmasi Perubahan ===")
+            print(f"Kode Kelas: {kode_kelas}")
+            print(f"Informasi Kelas Lama: {informasi_lama}")
+            print(f"Informasi Kelas Baru: {informasi_baru}")
+
+            while True:
+                konfirmasi = input("Apakah Anda yakin ingin memperbarui data ini? ('Y'/'N'): ").strip().upper()
+
+                if konfirmasi == 'Y':
+                    query_update = "UPDATE kelas SET informasi_kelas = %s WHERE kode_kelas = %s"
+                    cursor.execute(query_update, (informasi_baru, kode_kelas))
+                    conn.commit()
+                    print(f"Ruang kelas '{kode_kelas.upper()}' berhasil diperbarui!\n")
+                    break
+                elif konfirmasi == 'N':
+                    print("Proses pengeditan selesai.\n")
+                    return
+                else:
+                    print("Input invalid, silakan coba lagi.\n")
+                    continue
 
     except mysql.connector.Error as err:
         print(f"Terjadi kesalahan: {err}")
@@ -993,139 +1012,60 @@ def buat_kelas():
     except Exception as e:
         print(f"Terjadi kesalahan: {e}")
 
-def edit_kelas():
-    cursor = conn.cursor()
-    print("\n=== Edit Data Kelas ===")
-
-    try:
-        # Menampilkan daftar kelas
-        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, kode_dosen, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas"
-        cursor.execute(query)
-        kelas_list = cursor.fetchall()
-
-        if not kelas_list:
-            print("Tidak ada data kelas yang tersedia!")
-            return
-
-        print("\nDaftar Kelas:")
-        for kelas in kelas_list:
-            print("-" * 40)
-            print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nKode Dosen: {kelas[3]}\nJam: {kelas[4]} - {kelas[5]}\nPengguna: {kelas[6]}\nStatus: {kelas[7]}")
-            print("-" * 40)
-
-        # Memilih kelas yang akan diedit
-        kelas_id = input("\nMasukkan ID Kelas yang akan diedit (Ketik '0' untuk kembali): ").strip()
-        if kelas_id == '0':
-            return  # Kembali ke menu utama
-
-        # Mengambil data kelas berdasarkan ID
-        query = "SELECT id_detail_kelas, kode_kelas, kode_matkul, kode_dosen, hari, jam_mulai, jam_selesai, pengguna, status FROM detail_kelas WHERE id_detail_kelas = %s"
-        cursor.execute(query, (kelas_id,))
-        kelas = cursor.fetchone()
-
-        if not kelas:
-            print("Kelas dengan ID tersebut tidak ditemukan!")
-            return
-
-        print("\nData Kelas yang Dipilih:")
-        print(f"ID: {kelas[0]}\nKode Kelas: {kelas[1]}\nKode Mata Kuliah: {kelas[2]}\nKode Dosen: {kelas[3]}\nHari: {kelas[4]}\nJam: {kelas[5]} - {kelas[6]}\nPengguna: {kelas[7]}\nStatus: {kelas[8]}")
-
-        # Mengedit data kelas
-        print("\nMasukkan data baru (kosongkan jika tidak ingin mengubah, ketik '0' untuk kembali):")
-        kode_kelas_baru = input("Kode Kelas baru: ").strip()
-        if kode_kelas_baru == '0':
-            return
-        kode_kelas_baru = kode_kelas_baru or kelas[1]
-
-        kode_matkul_baru = input("Kode Mata Kuliah baru: ").strip()
-        if kode_matkul_baru == '0':
-            return
-        kode_matkul_baru = kode_matkul_baru or kelas[2]
-
-        kode_dosen_baru = input("Kode Dosen baru: ").strip()
-        if kode_dosen_baru == '0':
-            return
-        kode_dosen_baru = kode_dosen_baru or kelas[3]
-
-        hari_baru = input("Hari baru: ").strip()
-        if hari_baru == '0':
-            return
-        hari_baru = hari_baru or kelas[4]
-
-        jam_mulai_baru = input("Jam Mulai baru (HH:MM): ").strip()
-        if jam_mulai_baru == '0':
-            return
-        jam_mulai_baru = jam_mulai_baru or kelas[5]
-
-        jam_selesai_baru = input("Jam Selesai baru (HH:MM): ").strip()
-        if jam_selesai_baru == '0':
-            return
-        jam_selesai_baru = jam_selesai_baru or kelas[6]
-
-        pengguna_baru = input("Pengguna baru: ").strip()
-        if pengguna_baru == '0':
-            return
-        pengguna_baru = pengguna_baru or kelas[7]
-
-        status_baru = input("Status baru (kosongkan untuk tetap 'Digunakan'): ").strip()
-        if status_baru == '0':
-            return
-        status_baru = status_baru or kelas[8]
-
-        # Update data kelas di database
-        query = """
-            UPDATE detail_kelas
-            SET kode_kelas = %s, kode_matkul = %s, kode_dosen = %s, hari = %s, jam_mulai = %s, jam_selesai = %s, pengguna = %s, status = %s
-            WHERE id_detail_kelas = %s
-        """
-        cursor.execute(query, (kode_kelas_baru.upper(), kode_matkul_baru.upper(), kode_dosen_baru, hari_baru.capitalize(), jam_mulai_baru, jam_selesai_baru, pengguna_baru.upper(), status_baru, kelas_id))
-        conn.commit()
-        print("Data kelas berhasil diperbarui.")
-
-    except Exception as e:
-        print(f"Terjadi kesalahan: {e}")
-
 def hapus_kelas():
     cursor = conn.cursor()
     print("\n=== Hapus Kelas ===")
 
     # Menampilkan daftar kelas
     print("\nDaftar Kelas:")
-    cursor.execute("SELECT kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas")
+    cursor.execute("SELECT id_detail_kelas, kode_kelas, kode_matkul, hari, jam_mulai, jam_selesai, pengguna FROM detail_kelas")
     daftar_kelas = cursor.fetchall()
 
     if not daftar_kelas:
         print("Tidak ada kelas yang tersedia untuk dihapus!")
         return
 
+    tabel = PrettyTable()
+    tabel.field_names = ["ID", "Kode Kelas", "Kode Matkul", "Hari", "Jam Mulai", "Jam Selesai", "Pengguna"]
+
     for kelas in daftar_kelas:
-        print(f"Kode Kelas: {kelas[0]}, Mata Kuliah: {kelas[1]}, Hari: {kelas[2]}, Jam: {kelas[3]} - {kelas[4]}, Pengguna: {kelas[5]}")
+        tabel.add_row(kelas)
+    print(tabel)
 
-    # Memilih kode kelas yang akan dihapus
-    kode_kelas = input("\nMasukkan Kode Kelas yang ingin dihapus: ").strip().upper()
+    print("Tekan 'Enter' pada kolom 'ID Kelas' untuk kembali ke menu utama.")
+    while True:
+        id_kelas = input("\nMasukkan ID Kelas yang ingin dihapus: ").strip()
+    
+        cursor.execute("SELECT * FROM detail_kelas WHERE id_detail_kelas = %s", (id_kelas,))
+        kelas = cursor.fetchone()
 
-    # Validasi keberadaan kelas
-    cursor.execute("SELECT * FROM detail_kelas WHERE kode_kelas = %s", (kode_kelas,))
-    kelas = cursor.fetchone()
+        if kelas == '':
+            print("Kembali ke menu utama...")
+            return
+        elif not kelas:
+            print("Kelas dengan ID tersebut tidak ditemukan!")
+            continue
+        else:
+            break
 
-    if not kelas:
-        print("Kelas dengan kode tersebut tidak ditemukan!")
-        return
-
-    # Konfirmasi penghapusan
-    konfirmasi = input(f"Apakah Anda yakin ingin menghapus kelas dengan kode {kode_kelas}? (y/n): ").strip().lower()
-    if konfirmasi != 'y':
-        print("Penghapusan kelas dibatalkan.")
-        return
+    while True:
+        konfirmasi = input(f"Apakah Anda yakin ingin menghapus kelas dengan ID {id_kelas}? ('Y'/'N'): ").strip().upper()
+        if konfirmasi == 'Y':
+            break
+        elif konfirmasi == 'N':
+            print("Penghapusan kelas dibatalkan.")
+            return
+        else:
+            print("Pilihan tidak valid. Silakan memilih 'Y' atau 'N'.")
+            continue
 
     try:
         # Hapus kelas dari database
-        cursor.execute("DELETE FROM detail_kelas WHERE kode_kelas = %s", (kode_kelas,))
+        cursor.execute("DELETE FROM detail_kelas WHERE id_detail_kelas = %s", (id_kelas,))
         conn.commit()
         print("Kelas berhasil dihapus.")
     except Exception as e:
         print(f"Terjadi kesalahan saat menghapus kelas: {e}")
-
 
 def tampilkan_kelas():
     try:

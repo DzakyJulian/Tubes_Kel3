@@ -76,27 +76,26 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
     
             if result is None:
                 print("Login gagal! NIM atau password salah.❌")
+                attempts += 1
             else:
                 nim_db, email, hashed_password, user_role = result
                 if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                     if user_role == role:
                         print(f"✅ Login berhasil sebagai {role.capitalize()}. ✅")
-    
-                        # Arahkan ke menu berdasarkan peran
-                        if role == 'mahasiswa':
-                            mahasiswa_menu(nim_db, email)
-                            return
-                        else:
-                            print("Login gagal! NIM atau password salah.")
+                        mahasiswa_menu(nim_db, email) # arahkan ke menu mahasiswa
+                        return
                     else:
                         print("Login gagal! NIM atau password salah.")
-    
-                attempts += 1
-                if attempts < 3:
-                    print(f"Sisa percobaan login: {3 - attempts}")
+                        attempts += 1
                 else:
-                    print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
-                    time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
+                    print("Login gagal! NIM atau password salah.")
+                    attempts += 1
+                    
+            if attempts < 3:
+                print(f"Sisa percobaan login: {3 - attempts}")
+            else:
+                print("Terlalu banyak percobaan gagal. Program akan pending selama 30 detik.")
+                time.sleep(30)  # Menunggu selama 30 detik setelah 3 kali gagal
     
     elif role == 'admin':
         while attempts < 3:
@@ -131,19 +130,21 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
 
             if result is None:
                 print("Login gagal! Email atau password salah.")
+                attempts += 1
             else:
                 nim_db, email, hashed_password, user_role = result
                 if bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8")):
                     if user_role == role:
                         print(f"Login berhasil sebagai Admin.")
-                        admin_menu()
+                        admin_menu() # arahkan ke menu admin
                         return
                     else:
                         print("Login gagal! Email atau password salah.")
+                        attempts += 1
                 else: 
                     print("Login gagal! Email atau password salah.")
-
-            attempts += 1
+                    attempts += 1
+                    
             if attempts < 3:
                 print(f"Sisa percobaan login: {3 - attempts}")
             else:

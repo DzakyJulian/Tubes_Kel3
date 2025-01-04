@@ -21,11 +21,16 @@ def register_mahasiswa():
     # advance validation for NIM
     while True:
         try:
-            nim = int(input("Masukkan NIM: "))
+            nim = int(input("Masukkan NIM ('0' untuk kembali): "))
         except:
             print("NIM harus angka, tidak boleh kosong, tidak boleh huruf atau simbol lainnya.")
         else:
             break
+    
+    # Keluar dari register jika input '0'
+    if nim == 0:
+        return
+    
     # Validasi Email kosong
     while True:
         email = input("Masukkan Email: ").strip().lower()
@@ -33,6 +38,8 @@ def register_mahasiswa():
             print("Email tidak boleh kosong")
         else:
             break
+        
+    
     # Validasi Password kosong
     while True:
         password = input("Masukkan Password: ").strip()

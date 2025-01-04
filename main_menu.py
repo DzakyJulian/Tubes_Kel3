@@ -37,7 +37,7 @@ def admin_menu():
         print(table)
         
         choice = input("Pilih menu: ").strip()
-        
+            
         if choice == '1':
             print("1. Request Booking Kelas")
             print("2. Lihat Pengajuan Mandiri")

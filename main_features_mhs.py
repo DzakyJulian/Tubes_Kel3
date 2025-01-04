@@ -84,6 +84,16 @@ def ajukan_kelas(nim, email):
         if id_detail_kelas == '0':
             return
 
+        # Validasi ID Kelas sudah dipesan oleh mahasiswa atau belum
+        cursor.execute('''
+        SELECT * FROM transaksi WHERE id_detail_kelas = %s AND nim = %s
+        ''', (id_detail_kelas, nim))
+        tr_res = cursor.fetchall()
+        
+        if (len(tr_res) > 0):
+            print(f"Anda sudah memesan kelas dengan ID Detail Kelas: {id_detail_kelas}. Harap memesan kelas yang lain.")
+            return
+
         cursor.execute('''
         SELECT jam_mulai, jam_selesai, pengguna FROM detail_kelas WHERE id_detail_kelas = %s
         ''', (id_detail_kelas,))
@@ -129,7 +139,7 @@ def ajukan_kelas(nim, email):
                 else:
                     print("Input tidak valid.")
         else:
-            print(f"Digunakan oleh {pengguna_baru[2]}, tidak dapat memesan kelas ini.")
+            print(f"Digunakan oleh {pengguna_baru}, tidak dapat memesan kelas ini.")
 
     except mysql.connector.Error as err:
         print(f"Error: Terjadi kesalahan saat mengambil data kelas. {err}")

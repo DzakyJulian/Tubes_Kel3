@@ -215,6 +215,7 @@ def batal_kelas(nim):
                        row[7], 
                        row[8], 
                        row[9]])
+        print(table)    
 
         # Input ID Pesanan yang ingin dibatalkan
         id_transaksi = input("Masukkan ID Pesanan yang ingin dibatalkan atau ketik 0 untuk kembali: ").strip()

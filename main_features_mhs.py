@@ -192,17 +192,29 @@ def batal_kelas(nim):
             return
 
         # Menampilkan daftar pesanan kelas yang dapat dibatalkan
-        print("-" * 40)
+        table = PrettyTable()
+        table.field_names = ["ID Pesanan", 
+                             "ID Detail Kelas", 
+                             "Kode Kelas", 
+                             "Dosen",
+                             "Hari", 
+                             "Jam Mulai", 
+                             "Jam Selesai",
+                             "Tanggal Transaksi", 
+                             "Diajukan oleh", 
+                             "Status Transaksi"]
+        
         for row in result:
-            print(f"ID Pesanan           : {row[0]}")
-            print(f"ID Detail Kelas      : {row[1]}")
-            print(f"Kode Kelas           : {row[2]}")
-            print(f"Dosen                : {row[3]}")
-            print(f"Waktu Penggunaan     : {row[4]}, {row[5]} - {row[6]}")
-            print(f"Tanggal Transaksi    : {row[7]}")
-            print(f"Diajukan oleh        : {row[8]}")
-            print(f"Status Transaksi     : {row[9]}")
-            print("-" * 40)
+            table.add_row([row[0], 
+                       row[1], 
+                       row[2], 
+                       row[3],
+                       row[4], 
+                       row[5], 
+                       row[6],
+                       row[7], 
+                       row[8], 
+                       row[9]])
 
         # Input ID Pesanan yang ingin dibatalkan
         id_transaksi = input("Masukkan ID Pesanan yang ingin dibatalkan atau ketik 0 untuk kembali: ").strip()

@@ -224,11 +224,11 @@ def view_mata_kuliah():
         matkul = cursor.fetchall()
         if matkul:
             print("\n=== Data Mata Kuliah ===")
+            table = PrettyTable()
+            table.field_names = ["Kode Mata Kuliah", "Nama Mata Kuliah"]
             for mk in matkul:
-                print("-" * 30)
-                print(f"Kode Mata Kuliah: {mk[0]}")
-                print(f"Nama Mata Kuliah: {mk[1]}")
-                print("-" * 30)
+                table.add_row([mk[0], mk[1]])
+            print(table)    
         else:
             print("Tidak ada data mata kuliah.")
     except mysql.connector.Error as err:

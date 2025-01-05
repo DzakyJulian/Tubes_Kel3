@@ -330,8 +330,11 @@ def pengajuan(nim, email):
             return
 
         print("\nJadwal Kosong Dosen:")
+        table = PrettyTable()
+        table.field_names = ["Dosen", "Hari", "Jam Mulai", "Jam Selesai"]
         for jadwal in jadwal_list:
-            print(f"Dosen: {jadwal[3]}, Hari: {jadwal[0]}, Jam: {jadwal[1]} - {jadwal[2]}")
+            table.add_row([jadwal[3], jadwal[0], jadwal[1], jadwal[2]])
+        print(table)
 
         # Memilih mata kuliah
         view_mata_kuliah()

@@ -3,6 +3,7 @@ import bcrypt
 import unicodedata
 import time
 from admin_db_info import get_current_mysql_password
+from prettytable import PrettyTable
 
 # Koneksi ke database MySQL
 conn = mysql.connector.connect(
@@ -18,10 +19,14 @@ def login_main():
     from main_menu import mahasiswa_menu, admin_menu
 
     while True:
+        table = PrettyTable()
+        table.field_names = ["No", "Pilihan"]
+        table.add_row(["1", "Login sebagai Mahasiswa"])
+        table.add_row(["2", "Login sebagai Admin"])
+        table.add_row(["0", "Kembali"])
+        
         print("\n=== Pilih Peran untuk Login ===")
-        print("1. Login sebagai Mahasiswa")
-        print("2. Login sebagai Admin")
-        print("0. Kembali")
+        print(table)
         role_choice = input("Masukkan pilihan (1/2/0): ").strip()
 
         if role_choice == '0':

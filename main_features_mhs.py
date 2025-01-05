@@ -258,7 +258,14 @@ def pengajuan(nim, email):
     cursor = conn.cursor()
 
     print("======= Pengajuan Pemakaian Kelas =======")
-    pengguna = input("\nDiajukan oleh(0 untuk kembali): ").strip()
+
+    while True:
+        pengguna = input("\nDiajukan oleh(0 untuk kembali): ").strip()
+        if len(pengguna) <= 0:
+            print("Pengguna kelas tidak boleh kosong.")
+        else:
+            break
+
     if pengguna.lower() == "0":
         print("Kembali ke menu utama.")
         return

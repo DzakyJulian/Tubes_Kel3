@@ -292,10 +292,11 @@ def pengajuan(nim, email):
 
     if jadwal_ruang:
         print("\nJadwal Penggunaan Ruang Kelas yang Dipilih:")
+        table = PrettyTable()
+        table.field_names = ["Kode Kelas", "Hari", "Jam Mulai", "Jam Selesai", "Pengguna"]
         for jadwal in jadwal_ruang:
-            print("-" * 40)
-            print(f"Kode Kelas: {jadwal[0]}, Hari: {jadwal[1]}, Jam: {jadwal[2]} - {jadwal[3]}, Pengguna: {jadwal[4]}")
-            print("-" * 40)
+            table.add_row([jadwal[0], jadwal[1], jadwal[2], jadwal[3], jadwal[4]])
+            print(table)
 
     # Memilih dosen
     kode_dosen = input("Masukkan Kode Dosen: ").strip()

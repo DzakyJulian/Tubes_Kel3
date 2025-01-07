@@ -119,7 +119,6 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                         break
                     else:
                         print("Email tidak valid!")
-                        break
 
             if email == '0':
                 print("Kembali ke menu pilih peran...")

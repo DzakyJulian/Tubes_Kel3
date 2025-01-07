@@ -5,6 +5,8 @@ import time
 from admin_db_info import get_current_mysql_password
 from prettytable import PrettyTable
 
+from register import email_validation_algorithm
+
 # Koneksi ke database MySQL
 conn = mysql.connector.connect(
     host="localhost",
@@ -112,7 +114,12 @@ def login_by_role(role, mahasiswa_menu, admin_menu):
                 if len(email) <= 0:
                     print("Email tidak boleh kosong.")
                 else:
-                    break
+                    email_valid = email_validation_algorithm(email)
+                    if (email_valid == True):
+                        break
+                    else:
+                        print("Email tidak valid!")
+                        break
 
             if email == '0':
                 print("Kembali ke menu pilih peran...")
